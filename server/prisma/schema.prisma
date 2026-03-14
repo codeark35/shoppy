@@ -1,0 +1,278 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  CUSTOMER
+  ADMIN
+  WAREHOUSE
+}
+
+enum OrderStatus {
+  PENDING
+  PAYMENT_PROCESSING
+  PAID
+  PREPARING
+  READY_TO_SHIP
+  SHIPPED
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REVERSED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+// ─── USERS ────────────────────────────────────────────────────────────────────
+
+model User {
+  id               String             @id @default(cuid())
+  email            String             @unique
+  passwordHash     String?
+  name             String
+  phone            String?
+  role             Role               @default(CUSTOMER)
+  addresses        Address[]
+  orders           Order[]
+  wishlist         Wishlist[]
+  reviews          Review[]
+  pushSubscriptions PushSubscription[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  label      String   // ej: "Casa", "Oficina"
+  street     String
+  city       String
+  department String
+  zipCode    String?
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+// ─── CATALOG ──────────────────────────────────────────────────────────────────
+
+model Category {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  parentId  String?
+  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+  products  Product[]
+  createdAt DateTime   @default(now())
+}
+
+model Product {
+  id          String           @id @default(cuid())
+  slug        String           @unique
+  name        String
+  description String
+  basePrice   Decimal          @db.Decimal(10, 2)
+  images      ProductImage[]
+  variants    ProductVariant[]
+  category    Category         @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  isActive    Boolean          @default(true)
+  wishlist    Wishlist[]
+  reviews     Review[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  url       String
+  alt       String?
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model ProductVariant {
+  id         String   @id @default(cuid())
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId  String
+  sku        String   @unique
+  attributes Json     // { "color": "Rojo", "talle": "M" }
+  price      Decimal  @db.Decimal(10, 2)
+  stock      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ─── ORDERS ───────────────────────────────────────────────────────────────────
+
+model Order {
+  id             String         @id @default(cuid())
+  orderNumber    Int            @unique @default(autoincrement())
+  user           User           @relation(fields: [userId], references: [id])
+  userId         String
+  status         OrderStatus    @default(PENDING)
+  items          OrderItem[]
+  payment        Payment?
+  shipping       OrderShipping?
+  coupon         Coupon?        @relation(fields: [couponId], references: [id])
+  couponId       String?
+  discountAmount Decimal?       @db.Decimal(10, 2)
+  total          Decimal        @db.Decimal(10, 2)
+  notes          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   String
+  variantId String
+  sku       String
+  name      String  // snapshot del nombre al momento de compra
+  imageUrl  String?
+  price     Decimal @db.Decimal(10, 2) // snapshot del precio
+  quantity  Int
+}
+
+model OrderShipping {
+  id             String        @id @default(cuid())
+  order          Order         @relation(fields: [orderId], references: [id])
+  orderId        String        @unique
+  recipientName  String
+  phone          String
+  addressLabel   String        @default("")
+  street         String
+  city           String
+  department     String
+  country        String        @default("PY")
+  zipCode        String?
+  trackingNumber String?
+  shippingCost   Decimal       @db.Decimal(10, 2) @default(0)
+  shippingRate   ShippingRate? @relation(fields: [shippingRateId], references: [id])
+  shippingRateId String?
+  createdAt      DateTime      @default(now())
+}
+
+// ─── PAYMENTS ─────────────────────────────────────────────────────────────────
+
+model Payment {
+  id            String        @id @default(cuid())
+  order         Order         @relation(fields: [orderId], references: [id])
+  orderId       String        @unique
+  provider      String        @default("bancard")
+  shopProcessId String        @unique
+  status        PaymentStatus @default(PENDING)
+  amount        Decimal       @db.Decimal(10, 2)
+  confirmedAt   DateTime?
+  rawWebhook    Json?         // payload bruto del webhook para auditoría
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+// ─── FASE 2: SHIPPING ──────────────────────────────────────────────────────────
+
+model ShippingZone {
+  id          String         @id @default(cuid())
+  name        String
+  departments String[]       // ["Central", "Alto Paraná"]
+  rates       ShippingRate[]
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+}
+
+model ShippingRate {
+  id             String          @id @default(cuid())
+  zone           ShippingZone    @relation(fields: [zoneId], references: [id])
+  zoneId         String
+  name           String          // "Envío estándar", "Envío express"
+  price          Decimal         @db.Decimal(10, 2)
+  estimatedDays  Int             // días hábiles estimados
+  isActive       Boolean         @default(true)
+  orderShippings OrderShipping[]
+  createdAt      DateTime        @default(now())
+}
+
+// ─── FASE 2: PROMOTIONS ────────────────────────────────────────────────────────
+
+model Coupon {
+  id                String       @id @default(cuid())
+  code              String       @unique
+  description       String?
+  discountType      DiscountType
+  discountValue     Decimal      @db.Decimal(10, 2)
+  minPurchaseAmount Decimal?     @db.Decimal(10, 2)
+  maxUses           Int?
+  usedCount         Int          @default(0)
+  validFrom         DateTime     @default(now())
+  validUntil        DateTime?
+  isActive          Boolean      @default(true)
+  orders            Order[]
+  createdAt         DateTime     @default(now())
+}
+
+// ─── FASE 2: REVIEWS ───────────────────────────────────────────────────────────
+
+model Review {
+  id         String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId  String
+  rating     Int      // 1–5
+  comment    String?
+  isApproved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, productId])
+}
+
+// ─── FASE 2: WISHLIST ──────────────────────────────────────────────────────────
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+// ─── FASE 2: PUSH NOTIFICATIONS ───────────────────────────────────────────────
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+}
+

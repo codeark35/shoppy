@@ -1,0 +1,58 @@
+// ─── Skeleton Loading ─────────────────────────────────────────────────────────
+
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+%skeleton-base {
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
+}
+
+// ── Card Skeleton ─────────────────────────────────────────────────────────────
+.product-card-skeleton {
+  border: 1px solid $border-color;
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+
+  .img-skeleton {
+    aspect-ratio: 1 / 1;
+    @extend %skeleton-base;
+    border-radius: 0;
+  }
+
+  .body-skeleton {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .line {
+      height: 11px;
+      @extend %skeleton-base;
+    }
+
+    .line-sm {
+      width: 50%;
+      height: 10px;
+      @extend %skeleton-base;
+    }
+
+    .line-price {
+      height: 18px;
+      width: 48%;
+      @extend %skeleton-base;
+    }
+
+    .btn-skeleton {
+      height: 34px;
+      border-radius: 7px;
+      margin-top: 4px;
+      @extend %skeleton-base;
+    }
+  }
+}

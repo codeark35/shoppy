@@ -1,0 +1,89 @@
+// ─── Design System Variables ─────────────────────────────────────────────────
+// Importar ANTES de Bootstrap para sobreescribir sus variables por defecto
+
+// ── Bootstrap 5 Color Overrides ──────────────────────────────────────────────
+$primary:   #0F4C81;
+$secondary: #374151;
+$success:   #16A34A;
+$warning:   #D97706;
+$danger:    #DC2626;
+$info:      #0284C7;
+$light:     #F9FAFB;
+$dark:      #111827;
+
+// ── Bootstrap 5 Typography ───────────────────────────────────────────────────
+$font-family-sans-serif: 'DM Sans', system-ui, -apple-system, sans-serif;
+$headings-font-family:   'Sora', system-ui, -apple-system, sans-serif;
+$font-size-base:         1rem;
+$line-height-base:       1.5;
+$headings-font-weight:   700;
+$headings-color:         #111827;
+$body-color:             #374151;
+
+// ── Bootstrap 5 Border Radius ─────────────────────────────────────────────────
+$border-radius:    8px;
+$border-radius-lg: 12px;
+$border-radius-sm: 4px;
+$border-radius-xl: 16px;
+
+// ── Bootstrap 5 Shadows ───────────────────────────────────────────────────────
+$box-shadow:    0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+$box-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+$box-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.10);
+
+// ── Bootstrap 5 Borders ───────────────────────────────────────────────────────
+$border-color:   #E5E7EB;
+$input-border-color: #E5E7EB;
+$input-focus-border-color: #1A6BB5;
+$input-focus-box-shadow: 0 0 0 3px rgba(#0F4C81, 0.12);
+
+// ── Bootstrap 5 Cards ─────────────────────────────────────────────────────────
+$card-border-color:  #E5E7EB;
+$card-border-radius: 12px;
+$card-box-shadow:    #{$box-shadow};
+$card-cap-bg:        transparent;
+
+// ── Bootstrap 5 Buttons ───────────────────────────────────────────────────────
+$btn-border-radius:    8px;
+$btn-font-weight:      600;
+$btn-padding-y:        0.5rem;
+$btn-padding-x:        1.25rem;
+$btn-transition:       color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+                       border-color 0.15s ease-in-out, transform 0.1s ease;
+
+// ── Bootstrap 5 Inputs ────────────────────────────────────────────────────────
+$input-padding-y:      0.625rem;
+$input-padding-x:      1rem;
+$input-border-radius:  8px;
+$input-font-size:      1rem;
+$input-placeholder-color: #9CA3AF;
+
+// ── Bootstrap 5 Nav / Navbar ──────────────────────────────────────────────────
+$navbar-light-color:         #374151;
+$navbar-light-hover-color:   #0F4C81;
+$navbar-light-active-color:  #0F4C81;
+$navbar-light-bg:            #FFFFFF;
+
+// ── Bootstrap 5 Transitions ───────────────────────────────────────────────────
+$transition-base: all 0.2s ease-in-out;
+$transition-fade: opacity 0.15s linear;
+
+// ── Custom Brand Variables (no Bootstrap) ─────────────────────────────────────
+$color-accent:        #F97316;
+$color-accent-hover:  #EA6C0A;
+$color-primary:       #0F4C81;
+$color-primary-light: #1A6BB5;
+$color-primary-dark:  #0A3358;
+$color-muted:         #6B7280;
+$color-surface:       #F9FAFB;
+
+// ── Semantic aliases (usados en componentes custom) ───────────────────────────
+$color-dark:          #111827;
+$color-white:         #ffffff;
+$color-border:        #E5E7EB;
+$color-body:          #374151;
+$color-success:       #16A34A;
+$color-warning:       #D97706;
+$color-danger:        #DC2626;
+$font-display:        'Sora', system-ui, -apple-system, sans-serif;
+$font-body:           'DM Sans', system-ui, -apple-system, sans-serif;

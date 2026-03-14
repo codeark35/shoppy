@@ -1,0 +1,463 @@
+// ─── Custom Component Styles ─────────────────────────────────────────────────
+
+// ── Accent Button (CTAs: Agregar al carrito, Comprar) ────────────────────────
+.btn-accent {
+  --bs-btn-bg:            #F97316;
+  --bs-btn-border-color:  #F97316;
+  --bs-btn-color:         #ffffff;
+  --bs-btn-hover-bg:      #EA6C0A;
+  --bs-btn-hover-border-color: #EA6C0A;
+  --bs-btn-hover-color:   #ffffff;
+  --bs-btn-active-bg:     #D96009;
+  --bs-btn-active-border-color: #D96009;
+  --bs-btn-active-color:  #ffffff;
+  --bs-btn-disabled-bg:   #F97316;
+  --bs-btn-disabled-border-color: #F97316;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-outline-accent {
+  --bs-btn-color:         #F97316;
+  --bs-btn-border-color:  #F97316;
+  --bs-btn-hover-bg:      #F97316;
+  --bs-btn-hover-border-color: #F97316;
+  --bs-btn-hover-color:   #ffffff;
+  font-weight: 600;
+}
+
+// ── Primary Button Overrides ──────────────────────────────────────────────────
+.btn-primary {
+  &:hover { transform: translateY(-1px); }
+  &:active { transform: translateY(0); }
+}
+
+// ── Product Card ──────────────────────────────────────────────────────────────
+.product-card {
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: box-shadow var(--transition-base), transform var(--transition-base), border-color var(--transition-base);
+  background: #ffffff;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-shadow: var(--shadow-sm);
+
+  &:hover {
+    box-shadow: var(--shadow-xl) !important;
+    transform: translateY(-5px);
+    border-color: rgba(15, 76, 129, 0.12);
+  }
+
+  .product-card__image-wrapper {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: #F8FAFC;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: #F1F5F9 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='%23CBD5E1' stroke-width='1.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpath d='m21 15-5-5L5 21'/%3E%3C/svg%3E") center / 48px no-repeat;
+      z-index: 0;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 10px;
+      transition: transform var(--transition-slow);
+      position: relative;
+      z-index: 1;
+    }
+
+    &:hover img {
+      transform: scale(1.07);
+    }
+  }
+
+  .product-card__body {
+    padding: 0.7rem 0.9rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  // Pill category badge with tinted color
+  .product-card__category {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.64rem;
+    font-weight: 700;
+    color: $color-primary;
+    background: rgba($color-primary, 0.08);
+    border-radius: var(--radius-pill);
+    padding: 2px 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.35rem;
+    width: fit-content;
+  }
+
+  .product-card__name {
+    font-family: $font-display;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #111827;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.38;
+    min-height: 2.45em;
+    margin-bottom: 0.4rem;
+  }
+
+  .product-card__price {
+    font-family: $font-display;
+    font-size: 1.18rem;
+    font-weight: 800;
+    color: $color-primary;
+    line-height: 1;
+  }
+
+  .product-card__price-original {
+    font-size: 0.78rem;
+    color: #9CA3AF;
+    text-decoration: line-through;
+    font-weight: 400;
+  }
+
+  // Glass wishlist button
+  .product-card__wishlist-btn {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    color: #6B7280;
+
+    &:hover {
+      background: #ffffff;
+      transform: scale(1.12);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.16);
+      color: #EF4444;
+    }
+
+    &.active {
+      color: #EF4444;
+      background: #FEF2F2;
+    }
+  }
+
+  // Pill gradient discount badge
+  .product-card__discount-badge {
+    position: absolute;
+    top: 9px;
+    left: 9px;
+    background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+    color: white;
+    font-size: 0.62rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    z-index: 2;
+    box-shadow: 0 2px 6px rgba(220,38,38,0.35);
+  }
+
+  .product-card__out-of-stock {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    background: rgba(107,114,128,0.85);
+    backdrop-filter: blur(4px);
+    color: white;
+    font-size: 0.62rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.03em;
+    z-index: 2;
+  }
+
+  .product-card__pricing {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 4px;
+  }
+
+  // Pill CTA button
+  .product-card__cta {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: var(--radius-pill);
+    margin-top: 10px;
+    letter-spacing: 0.01em;
+    transition: background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+
+    &.btn-accent {
+      background: linear-gradient(135deg, #FB923C 0%, #F97316 60%, #EA580C 100%);
+      border: none;
+      box-shadow: 0 2px 8px rgba(249,115,22,0.30);
+
+      &:hover {
+        box-shadow: 0 4px 16px rgba(249,115,22,0.45);
+        transform: translateY(-1px);
+      }
+    }
+  }
+}
+
+// ── Navbar ─────────────────────────────────────────────────────────────────────
+.navbar-brand {
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  color: #0F4C81 !important;
+  font-size: 1.2rem;
+}
+
+.navbar.navbar-light {
+  border-bottom: 1px solid #E5E7EB;
+}
+
+// ── Bottom Navigation (mobile) ────────────────────────────────────────────────
+.bottom-nav-item {
+  &.active {
+    color: #0F4C81 !important;
+
+    .bottom-nav-label {
+      color: #0F4C81;
+    }
+  }
+}
+
+// ── Section titles ────────────────────────────────────────────────────────────
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+
+  &__text {
+    font-family: $font-display;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #111827;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: -0.02em;
+
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 22px;
+      background: linear-gradient(180deg, #F97316 0%, #EA580C 100%);
+      border-radius: var(--radius-pill);
+      flex-shrink: 0;
+    }
+  }
+
+  &__link {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: $color-primary;
+    text-decoration: none;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    background: rgba($color-primary, 0.07);
+    transition: background var(--transition-fast), color var(--transition-fast);
+
+    &:hover {
+      background: rgba($color-primary, 0.13);
+      color: $color-primary-dark;
+    }
+  }
+}
+
+// ── Price display ──────────────────────────────────────────────────────────────
+.price-main {
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  color: #111827;
+}
+
+.price-original {
+  color: #9CA3AF;
+  text-decoration: line-through;
+  font-size: 0.85em;
+}
+
+.badge-discount {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+  font-size: 0.64rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 6px rgba(220,38,38,0.30);
+}
+
+// ── Star Rating ────────────────────────────────────────────────────────────────
+.star-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+
+  &__star {
+    background: none;
+    border: none;
+    padding: 0 1px;
+    color: #D1D5DB;
+    line-height: 1;
+    transition: color 0.1s ease;
+
+    &.filled {
+      color: #F59E0B;
+    }
+
+    &:not(:disabled):hover {
+      color: #F59E0B;
+    }
+  }
+}
+
+// ── Review card ────────────────────────────────────────────────────────────────
+.review-card {
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #FFFFFF;
+}
+
+// ── Coupon input ───────────────────────────────────────────────────────────────
+.coupon-input-group {
+  .form-control {
+    border-right: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+
+    &::placeholder {
+      text-transform: none;
+      letter-spacing: normal;
+    }
+  }
+}
+
+// ── Shipping rate selector ─────────────────────────────────────────────────────
+.shipping-option {
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: #1A6BB5;
+    background: #F0F7FF;
+  }
+
+  &.selected {
+    border-color: #0F4C81;
+    background: #EBF3FC;
+  }
+}
+
+// ── Skeleton loading ──────────────────────────────────────────────────────────
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+// ── Focus ring ────────────────────────────────────────────────────────────────
+:focus-visible {
+  outline: 2px solid #1A6BB5;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+// ── Cart bounce animation ─────────────────────────────────────────────────────
+@keyframes cart-bounce {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.95); }
+  70%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.cart-bounce {
+  animation: cart-bounce 0.3s ease;
+}
+
+// ── Page padding for bottom nav ────────────────────────────────────────────────
+@media (max-width: 767.98px) {
+  body {
+    padding-bottom: 70px;
+  }
+}
+
+// ── Headings use Sora ──────────────────────────────────────────────────────────
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6,
+.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+  font-family: 'Sora', system-ui, sans-serif;
+}
+
+// ── Smooth scrolling ──────────────────────────────────────────────────────────
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

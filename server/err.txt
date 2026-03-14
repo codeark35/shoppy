@@ -1,0 +1,2 @@
+(node:16728) [FSTDEP016] DeprecationWarning: You are accessing the deprecated "request.routeConfig" property. Use "request.routeOptions.config" instead. Property "req.routeConfig" will be removed in `fastify@5`.
+(Use `node --trace-deprecation ...` to show where the warning was created)
