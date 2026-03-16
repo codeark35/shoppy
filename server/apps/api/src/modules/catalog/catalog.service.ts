@@ -187,6 +187,23 @@ export class CatalogService {
     return { message: 'Producto eliminado' };
   }
 
+  // ─── Imágenes ───────────────────────────────────────────────────────────────
+
+  async addProductImage(productId: string, dto: { url: string; alt?: string; position?: number }) {
+    await this.getProductById(productId);
+    const maxPosition = await this.prisma.productImage.count({ where: { productId } });
+    return this.prisma.productImage.create({
+      data: { productId, url: dto.url, alt: dto.alt, position: dto.position ?? maxPosition },
+    });
+  }
+
+  async deleteProductImage(productId: string, imageId: string) {
+    const image = await this.prisma.productImage.findFirst({ where: { id: imageId, productId } });
+    if (!image) throw new NotFoundException('Imagen no encontrada');
+    await this.prisma.productImage.delete({ where: { id: imageId } });
+    return { message: 'Imagen eliminada' };
+  }
+
   // ─── Variantes ────────────────────────────────────────────────────────────────
 
   async addVariant(productId: string, dto: CreateVariantDto) {

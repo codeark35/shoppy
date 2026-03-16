@@ -6,6 +6,7 @@ import type {
   CreateProductPayload,
   UpdateProductPayload,
   CreateVariantPayload,
+  AddProductImagePayload,
   CreateCategoryPayload,
   UpdateCategoryPayload,
   CreateCouponPayload,
@@ -99,6 +100,24 @@ export const useDeleteProduct = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => adminService.deleteProduct(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'products'] }),
+  });
+};
+
+export const useAddProductImage = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ productId, payload }: { productId: string; payload: AddProductImagePayload }) =>
+      adminService.addProductImage(productId, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'products'] }),
+  });
+};
+
+export const useDeleteProductImage = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ productId, imageId }: { productId: string; imageId: string }) =>
+      adminService.deleteProductImage(productId, imageId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'products'] }),
   });
 };

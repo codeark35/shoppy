@@ -6,10 +6,12 @@ import type {
   PaginatedResponse,
   AdminOrderQuery,
   AdminProduct,
+  AdminProductImage,
   AdminProductsQuery,
   CreateProductPayload,
   UpdateProductPayload,
   CreateVariantPayload,
+  AddProductImagePayload,
   AdminCategory,
   CreateCategoryPayload,
   UpdateCategoryPayload,
@@ -65,10 +67,16 @@ export const adminService = {
   // ── Productos ─────────────────────────────────────────────────────────────
   getProducts: (query: AdminProductsQuery = {}) =>
     api
-      .get<PaginatedResponse<AdminProduct>>('/catalog/products', {
-        params: { ...query, includeInactive: true },
-      })
-      .then((r) => r.data),
+      .get<{ data: AdminProduct[]; meta: { total: number; page: number; limit: number; totalPages: number } }>(
+        '/catalog/products',
+        { params: { ...query, includeInactive: true } },
+      )
+      .then((r) => ({
+        items: r.data.data,
+        total: r.data.meta.total,
+        page: r.data.meta.page,
+        totalPages: r.data.meta.totalPages,
+      } as PaginatedResponse<AdminProduct>)),
 
   createProduct: (payload: CreateProductPayload) =>
     api.post<AdminProduct>('/catalog/products', payload).then((r) => r.data),
@@ -78,6 +86,26 @@ export const adminService = {
 
   deleteProduct: (id: string) =>
     api.delete<{ message: string }>(`/catalog/products/${id}`).then((r) => r.data),
+
+  addProductImage: (productId: string, payload: AddProductImagePayload) =>
+    api
+      .post<AdminProductImage>(`/catalog/products/${productId}/images`, payload)
+      .then((r) => r.data),
+
+  deleteProductImage: (productId: string, imageId: string) =>
+    api
+      .delete<{ message: string }>(`/catalog/products/${productId}/images/${imageId}`)
+      .then((r) => r.data),
+
+  uploadMedia: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api
+      .post<{ key: string; url: string }>('/media/upload', formData, {
+        headers: { 'Content-Type': undefined },
+      })
+      .then((r) => r.data);
+  },
 
   addVariant: (productId: string, payload: CreateVariantPayload) =>
     api

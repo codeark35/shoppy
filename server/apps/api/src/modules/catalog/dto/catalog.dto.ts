@@ -45,6 +45,20 @@ export class CreateVariantDto {
   attributes: Record<string, string>; // { "color": "Rojo", "talle": "M" }
 }
 
+export class CreateProductImageDto {
+  @IsString()
+  url: string;
+
+  @IsOptional()
+  @IsString()
+  alt?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  position?: number;
+}
+
 export class CreateProductDto {
   @IsString()
   name: string;

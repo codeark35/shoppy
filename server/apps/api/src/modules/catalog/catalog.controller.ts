@@ -7,6 +7,7 @@ import {
   CreateProductDto, UpdateProductDto,
   CreateCategoryDto, UpdateCategoryDto,
   ProductQueryDto, CreateVariantDto,
+  CreateProductImageDto,
 } from './dto/catalog.dto';
 import { JwtAuthGuard, Roles, RolesGuard } from '@libs/common';
 import { Role } from '@prisma/client';
@@ -74,6 +75,22 @@ export class CatalogController {
   @HttpCode(HttpStatus.OK)
   deleteProduct(@Param('id') id: string) {
     return this.catalogService.deleteProduct(id);
+  }
+
+  // ─── Imágenes ─────────────────────────────────────────────────────────────────
+  @Post('products/:id/images')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  addProductImage(@Param('id') productId: string, @Body() dto: CreateProductImageDto) {
+    return this.catalogService.addProductImage(productId, dto);
+  }
+
+  @Delete('products/:id/images/:imageId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  deleteProductImage(@Param('id') productId: string, @Param('imageId') imageId: string) {
+    return this.catalogService.deleteProductImage(productId, imageId);
   }
 
   // ─── Variantes ────────────────────────────────────────────────────────────────

@@ -1,17 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Badge, Button, Form, Modal, Alert, Spinner, InputGroup } from 'react-bootstrap';
-import { Plus, Edit2, Trash2, Search, RefreshCw, ChevronLeft, ChevronRight, PlusCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, RefreshCw, ChevronLeft, ChevronRight, PlusCircle, Image, X } from 'lucide-react';
 import {
   useAdminProducts,
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
+  useAddProductImage,
+  useDeleteProductImage,
   useAddVariant,
   useAdminCategories,
 } from '../features/admin';
+import { adminService } from '../features/admin';
 import { formatPrice } from '../shared/utils/formatPrice';
 import type {
   AdminProduct,
+  AdminProductImage,
   AdminProductVariant,
   CreateProductPayload,
   CreateVariantPayload,
@@ -44,6 +48,66 @@ function ProductModal({ product, onHide }: ProductModalProps) {
   const { data: categories = [] } = useAdminCategories();
   const createMut = useCreateProduct();
   const updateMut = useUpdateProduct();
+  const deleteImageMut = useDeleteProductImage();
+
+  // Imágenes confirmadas (ya guardadas en el servidor)
+  const [images, setImages] = useState<AdminProductImage[]>(product?.images ?? []);
+  // Archivos seleccionados aún no subidos (sólo modo crear)
+  const [pendingFiles, setPendingFiles] = useState<Array<{ id: string; file: File; preview: string }>>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = '';
+    if (!files.length) return;
+    setImageError(null);
+
+    if (isEdit) {
+      // Subir inmediatamente y vincular al producto
+      setUploadingImages(true);
+      try {
+        for (const file of files) {
+          const uploaded = await adminService.uploadMedia(file);
+          const img = await adminService.addProductImage(product.id, { url: uploaded.url });
+          setImages((prev) => [...prev, img]);
+        }
+      } catch {
+        setImageError('Error al subir una o más imágenes.');
+      } finally {
+        setUploadingImages(false);
+      }
+    } else {
+      // En modo crear: acumular con preview local
+      const newPending = files.map((file) => ({
+        id: `pending-${Date.now()}-${Math.random()}`,
+        file,
+        preview: URL.createObjectURL(file),
+      }));
+      setPendingFiles((prev) => [...prev, ...newPending]);
+    }
+  };
+
+  const handleDeleteImage = async (img: AdminProductImage) => {
+    if (isEdit) {
+      try {
+        await deleteImageMut.mutateAsync({ productId: product.id, imageId: img.id });
+      } catch {
+        return;
+      }
+    }
+    setImages((prev) => prev.filter((i) => i.id !== img.id));
+  };
+
+  const handleRemovePending = (id: string) => {
+    setPendingFiles((prev) => {
+      const item = prev.find((p) => p.id === id);
+      if (item) URL.revokeObjectURL(item.preview);
+      return prev.filter((p) => p.id !== id);
+    });
+  };
+
   const [form, setForm] = useState<CreateProductPayload>(
     product
       ? {
@@ -72,7 +136,13 @@ function ProductModal({ product, onHide }: ProductModalProps) {
       if (isEdit) {
         await updateMut.mutateAsync({ id: product.id, payload: form });
       } else {
-        await createMut.mutateAsync(form);
+        const created = await createMut.mutateAsync(form);
+        // Subir archivos pendientes y vincularlos al producto recín creado
+        for (const pending of pendingFiles) {
+          const uploaded = await adminService.uploadMedia(pending.file);
+          await adminService.addProductImage(created.id, { url: uploaded.url });
+          URL.revokeObjectURL(pending.preview);
+        }
       }
       onHide();
     } catch {
@@ -80,7 +150,7 @@ function ProductModal({ product, onHide }: ProductModalProps) {
     }
   };
 
-  const isPending = createMut.isPending || updateMut.isPending;
+  const isPending = createMut.isPending || updateMut.isPending || uploadingImages;
 
   return (
     <Modal show onHide={onHide} centered size="lg">
@@ -168,6 +238,95 @@ function ProductModal({ product, onHide }: ProductModalProps) {
                 onChange={(e) => set({ isActive: e.target.checked })}
                 className="mb-1"
               />
+            </div>
+
+            {/* ── Imágenes ── */}
+            <div className="col-12">
+              <Form.Label className="small fw-medium d-flex align-items-center gap-1">
+                <Image size={13} /> Imágenes del producto
+              </Form.Label>
+
+              {/* Grid: imágenes ya guardadas */}
+              {(images.length > 0 || pendingFiles.length > 0) && (
+                <div className="d-flex flex-wrap gap-2 mb-2">
+                  {images.map((img) => (
+                    <div
+                      key={img.id}
+                      style={{ position: 'relative', width: 80, height: 80, borderRadius: 8, overflow: 'hidden', border: '1px solid #dee2e6', background: '#f8f9fa' }}
+                    >
+                      <img
+                        src={img.url}
+                        alt={`pos ${img.position}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/80x80?text=?'; }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteImage(img)}
+                        disabled={deleteImageMut.isPending}
+                        style={{ position: 'absolute', top: 3, right: 3, padding: '1px 4px', background: 'rgba(220,53,69,0.85)', border: 'none', borderRadius: 4, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                        title="Eliminar"
+                      >
+                        <X size={10} color="#fff" />
+                      </button>
+                    </div>
+                  ))}
+                  {/* Archivos pendientes de subir (solo modo crear) */}
+                  {pendingFiles.map((p) => (
+                    <div
+                      key={p.id}
+                      style={{ position: 'relative', width: 80, height: 80, borderRadius: 8, overflow: 'hidden', border: '2px dashed #0d6efd', background: '#f0f5ff' }}
+                      title={p.file.name}
+                    >
+                      <img
+                        src={p.preview}
+                        alt={p.file.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePending(p.id)}
+                        style={{ position: 'absolute', top: 3, right: 3, padding: '1px 4px', background: 'rgba(220,53,69,0.85)', border: 'none', borderRadius: 4, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                        title="Quitar"
+                      >
+                        <X size={10} color="#fff" />
+                      </button>
+                      {/* Badge “pendiente” */}
+                      <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(13,110,253,0.7)', color: '#fff', fontSize: '0.6rem', textAlign: 'center', padding: '1px 0' }}>
+                        pendiente
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {imageError && <div className="text-danger small mb-2">{imageError}</div>}
+
+              {/* Botón para abrir selector de archivos */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                style={{ display: 'none' }}
+                onChange={handleFileSelect}
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="outline-primary"
+                className="d-flex align-items-center gap-1"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingImages}
+              >
+                {uploadingImages
+                  ? <><Spinner size="sm" className="me-1" />Subiendo…</>
+                  : <><Image size={13} /> Seleccionar imágenes</>}
+              </Button>
+              <div className="text-muted mt-1" style={{ fontSize: '0.72rem' }}>
+                JPG, PNG, WebP o GIF · máx. 5 MB por archivo
+                {!isEdit && pendingFiles.length > 0 && ` · ${pendingFiles.length} archivo${pendingFiles.length > 1 ? 's' : ''} listo${pendingFiles.length > 1 ? 's' : ''} para subir`}
+              </div>
             </div>
           </div>
         </Modal.Body>
@@ -447,8 +606,32 @@ export default function AdminProductsPage() {
               {data?.items.map((product) => (
                 <tr key={product.id}>
                   <td className="ps-3">
-                    <div className="fw-medium text-dark">{product.name}</div>
-                    <div className="text-muted font-monospace" style={{ fontSize: '0.7rem' }}>{product.slug}</div>
+                    <div className="d-flex align-items-center gap-2">
+                      {/* Thumbnail */}
+                      <div
+                        style={{
+                          width: 40, height: 40, borderRadius: 6, overflow: 'hidden',
+                          border: '1px solid #dee2e6', background: '#f8f9fa', flexShrink: 0,
+                        }}
+                      >
+                        {product.images?.[0] ? (
+                          <img
+                            src={product.images[0].url}
+                            alt={product.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/40x40?text=?'; }}
+                          />
+                        ) : (
+                          <div className="d-flex align-items-center justify-content-center h-100">
+                            <Image size={16} className="text-muted" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <div className="fw-medium text-dark">{product.name}</div>
+                        <div className="text-muted font-monospace" style={{ fontSize: '0.7rem' }}>{product.slug}</div>
+                      </div>
+                    </div>
                   </td>
                   <td>
                     <Badge bg="light" text="secondary" className="fw-normal">{product.category?.name ?? '—'}</Badge>

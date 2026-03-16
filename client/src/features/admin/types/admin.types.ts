@@ -111,6 +111,12 @@ export type CreateProductPayload = {
 
 export type UpdateProductPayload = Partial<CreateProductPayload>;
 
+export type AddProductImagePayload = {
+  url: string;
+  alt?: string;
+  position?: number;
+};
+
 export type CreateVariantPayload = {
   sku: string;
   price: number;
