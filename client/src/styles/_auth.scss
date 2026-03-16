@@ -1,0 +1,369 @@
+// ─── Auth Pages — Login & Register ───────────────────────────────────────────
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  background: #F8FAFC;
+}
+
+// ── Panel de marca (izquierdo) ────────────────────────────────────────────────
+
+.auth-brand-panel {
+  position: relative;
+  width: 44%;
+  min-height: 100vh;
+  background: linear-gradient(145deg, #0A3561 0%, #0F4C81 45%, #1565A8 100%);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 3.5rem;
+
+  @media (max-width: 991.98px) {
+    display: none;
+  }
+}
+
+// Orbes de fondo animados
+.auth-brand-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  pointer-events: none;
+
+  &--1 {
+    width: 500px;
+    height: 500px;
+    top: -140px;
+    right: -80px;
+    background: rgba(#1A6BB5, 0.55);
+    animation: authOrbFloat 9s ease-in-out infinite;
+  }
+
+  &--2 {
+    width: 340px;
+    height: 340px;
+    bottom: -80px;
+    left: -60px;
+    background: rgba(#0A2E50, 0.75);
+    animation: authOrbFloat 12s ease-in-out infinite reverse;
+  }
+
+  &--3 {
+    width: 220px;
+    height: 220px;
+    top: 42%;
+    left: 38%;
+    background: rgba(255, 255, 255, 0.05);
+    animation: authOrbFloat 7s ease-in-out infinite;
+  }
+}
+
+@keyframes authOrbFloat {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-28px) scale(1.05);
+  }
+}
+
+.auth-brand-content {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  max-width: 380px;
+}
+
+.auth-brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fff;
+  text-decoration: none;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 2.75rem;
+  opacity: 0.95;
+  transition: opacity var(--transition-fast);
+
+  &:hover {
+    opacity: 0.8;
+    color: #fff;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.auth-brand-headline {
+  font-family: 'Sora', system-ui, sans-serif;
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.auth-brand-sub {
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 2.25rem;
+  line-height: 1.6;
+}
+
+.auth-brand-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+}
+
+.auth-feature-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  flex-shrink: 0;
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+
+// ── Panel de formulario (derecho) ─────────────────────────────────────────────
+
+.auth-form-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1.5rem 3rem;
+  min-height: 100vh;
+  position: relative;
+  overflow-y: auto;
+}
+
+.auth-back-link {
+  position: absolute;
+  top: 1.25rem;
+  left: 1.5rem;
+  font-size: 0.875rem;
+  color: #6B7280;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: #0F4C81;
+  }
+}
+
+// Logo visible solo en mobile (el brand panel se oculta)
+.auth-mobile-logo {
+  display: none;
+  text-align: center;
+  margin-bottom: 2rem;
+
+  @media (max-width: 991.98px) {
+    display: block;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #0F4C81;
+    text-decoration: none;
+    font-family: 'Sora', system-ui, sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+}
+
+.auth-form-wrap {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-form-header {
+  margin-bottom: 2rem;
+
+  h1 {
+    font-family: 'Sora', system-ui, sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: #6B7280;
+    font-size: 0.9375rem;
+    margin: 0;
+
+    a {
+      color: #0F4C81;
+      font-weight: 600;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+// ── Inputs con icono ──────────────────────────────────────────────────────────
+
+.auth-input-wrap {
+  position: relative;
+}
+
+.auth-input-icon {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9CA3AF;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.auth-input {
+  padding-left: 2.5rem !important;
+
+  &--toggle {
+    padding-right: 2.75rem !important;
+  }
+}
+
+.auth-toggle-btn {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  color: #9CA3AF;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: #374151;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #0F4C81;
+    outline-offset: 1px;
+  }
+}
+
+// ── Indicador de fortaleza de contraseña ──────────────────────────────────────
+
+.auth-strength {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.auth-strength-bar {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.auth-strength-segment {
+  height: 4px;
+  flex: 1;
+  border-radius: var(--radius-pill);
+  background: #E5E7EB;
+  transition: background var(--transition-base);
+
+  &--danger {
+    background: #DC2626;
+  }
+  &--warning {
+    background: #D97706;
+  }
+  &--info {
+    background: #0284C7;
+  }
+  &--success {
+    background: #16A34A;
+  }
+}
+
+.auth-strength-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  min-width: 52px;
+  text-align: right;
+}
+
+// ── Botón de envío ────────────────────────────────────────────────────────────
+
+.auth-submit-btn {
+  height: 48px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  letter-spacing: -0.01em;
+  transition: all var(--transition-base);
+
+  &:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(#0F4C81, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ── Términos y condiciones ────────────────────────────────────────────────────
+
+.auth-tos {
+  font-size: 0.8125rem;
+
+  a {
+    color: #0F4C81;
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

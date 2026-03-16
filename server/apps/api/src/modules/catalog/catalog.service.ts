@@ -73,7 +73,7 @@ export class CatalogService {
     const { page = 1, limit = 20, search, categoryId, categorySlug, minPrice, maxPrice } = query;
     const skip = (page - 1) * limit;
 
-    const where: any = { isActive: true };
+    const where: any = query.includeInactive ? {} : { isActive: true };
 
     if (search) {
       where.OR = [

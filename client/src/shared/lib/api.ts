@@ -1,14 +1,15 @@
 import axios from 'axios';
+import { useAuthStore } from '../../features/auth/store/authStore';
 
 const api = axios.create({
   baseURL: '/api/v1',
-  withCredentials: true,         // enviar cookies HttpOnly (refresh_token, session_id)
+  withCredentials: true,         // enviar cookies HttpOnly (refresh_token)
   headers: { 'Content-Type': 'application/json' },
 });
 
-// ─── Interceptor request: adjuntar access token ────────────────────────────────
+// ─── Interceptor request: adjuntar access token desde el store (en memoria) ────
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
+  const token = useAuthStore.getState().accessToken;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -32,6 +33,11 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // No intentar refresh para la propia llamada de refresh (evitar loop)
+    if (originalRequest?.url?.includes('/auth/refresh')) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -52,14 +58,20 @@ api.interceptors.response.use(
           { withCredentials: true },
         );
         const newToken = data.accessToken;
-        localStorage.setItem('access_token', newToken);
+
+        // Actualiza el store en memoria (NO localStorage)
+        useAuthStore.getState().setAccessToken(newToken);
+
         processQueue(null, newToken);
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.removeItem('access_token');
-        window.location.href = '/login';
+        // Limpiar estado y redirigir a inicio (no a /login que no existe)
+        useAuthStore.getState().clearAuth();
+        if (window.location.pathname !== '/') {
+          window.location.href = '/';
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

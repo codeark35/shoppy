@@ -9,6 +9,7 @@ interface AuthStoreState {
   setAuth: (user: User, accessToken: string) => void;
   clearAuth: () => void;
   updateUser: (user: Partial<User>) => void;
+  setAccessToken: (token: string) => void;
 }
 
 export const useAuthStore = create<AuthStoreState>()(
@@ -19,12 +20,11 @@ export const useAuthStore = create<AuthStoreState>()(
       isAuthenticated: false,
 
       setAuth: (user, accessToken) => {
-        localStorage.setItem('access_token', accessToken);
+        // Token solo en memoria — NO se escribe en localStorage directamente
         set({ user, accessToken, isAuthenticated: true });
       },
 
       clearAuth: () => {
-        localStorage.removeItem('access_token');
         set({ user: null, accessToken: null, isAuthenticated: false });
       },
 
@@ -32,10 +32,17 @@ export const useAuthStore = create<AuthStoreState>()(
         set((state) => ({
           user: state.user ? { ...state.user, ...partial } : null,
         })),
+
+      // Actualiza solo el token (usado por el interceptor de auto-refresh)
+      setAccessToken: (token) => {
+        set({ accessToken: token, isAuthenticated: true });
+      },
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({ user: state.user, accessToken: state.accessToken }),
+      // Solo persiste el usuario — el accessToken queda en memoria (no en localStorage)
+      // Esto evita que el token quede expuesto a scripts XSS
+      partialize: (state) => ({ user: state.user }),
     },
   ),
 );

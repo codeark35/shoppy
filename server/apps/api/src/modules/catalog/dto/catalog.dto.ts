@@ -136,4 +136,10 @@ export class ProductQueryDto {
   @IsNumber()
   @Min(1)
   limit?: number = 20;
+
+  /** Solo usado por el panel admin — permite ver productos inactivos */
+  @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  includeInactive?: boolean;
 }

@@ -69,10 +69,14 @@ export class AuthService {
 
   // ─── Refresh ──────────────────────────────────────────────────────────────────
   async refresh(userId: string, email: string, role: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    // Re-fetch desde BD para que el rol siempre sea el actual
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, role: true },
+    });
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
-    const tokens = this.generateTokens(userId, email, role);
+    const tokens = this.generateTokens(user.id, user.email, user.role);
     return tokens;
   }
 

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Form, InputGroup } from 'react-bootstrap';
+import { Search } from 'lucide-react';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
 import { useSearch } from '../hooks/useSearch';
 
@@ -53,7 +54,7 @@ export function SearchBar({ onSelect, placeholder = 'Buscar productos...' }: Pro
             autoComplete="off"
           />
           <button className="btn btn-primary btn-sm" type="submit" aria-label="Buscar">
-            🔍
+            <Search />
           </button>
         </InputGroup>
       </Form>

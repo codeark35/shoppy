@@ -13,7 +13,6 @@ export function useAuth() {
     mutationFn: (payload: LoginPayload) => authService.login(payload),
     onSuccess: async (data) => {
       setAuth(data.user, data.accessToken);
-      // Merge carrito anónimo → carrito autenticado
       await mergeCart();
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     },
@@ -31,6 +30,11 @@ export function useAuth() {
   const logoutMutation = useMutation({
     mutationFn: () => authService.logout(),
     onSuccess: () => {
+      clearAuth();
+      queryClient.clear();
+    },
+    onError: () => {
+      // Si la API falla (ej: token expirado), igual limpiamos el estado local
       clearAuth();
       queryClient.clear();
     },

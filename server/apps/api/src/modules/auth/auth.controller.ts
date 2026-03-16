@@ -70,10 +70,9 @@ export class AuthController {
     return { accessToken };
   }
 
-  // POST /auth/logout
+  // POST /auth/logout — no requiere JWT válido, solo limpia la cookie del browser
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
   async logout(@Res({ passthrough: true }) reply: FastifyReply) {
     reply.clearCookie('refresh_token', { path: '/api/v1/auth' });
     return { message: 'Sesión cerrada correctamente' };
