@@ -72,12 +72,12 @@ export function HomePage() {
         </section>
 
 
-        <section className="py-5 bg-light">
+        {/* <section className="py-5 bg-light">
           <Container fluid="xl">
             <SectionTitle title="Nuevos productos" linkText="Ver catálogo completo" linkTo="/productos" />
             <ProductSwiper filters={{ page: 2, limit: 12  }} limit={10} />
           </Container>
-        </section>
+        </section> */}
 
         <FeaturedCategorySpotlight />
       </main>

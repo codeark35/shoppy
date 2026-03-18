@@ -11,6 +11,7 @@ interface ProductSwiperProps {
   filters?: ProductFilters;
   limit?: number;
   autoplay?: boolean;
+  maxPerView?: number;
 }
 
 function ProductSkeleton() {
@@ -27,7 +28,7 @@ function ProductSkeleton() {
   );
 }
 
-export function ProductSwiper({ filters = {}, limit, autoplay = false }: ProductSwiperProps) {
+export function ProductSwiper({ filters = {}, limit, autoplay = false, maxPerView = 5 }: ProductSwiperProps) {
   const { data, isLoading, isError } = useProducts(filters);
   const products = limit ? data?.data.slice(0, limit) : data?.data;
   const prevRef = useRef<HTMLButtonElement>(null);
@@ -81,9 +82,9 @@ export function ProductSwiper({ filters = {}, limit, autoplay = false }: Product
         autoplay={autoplay ? { delay: 3500, disableOnInteraction: true } : false}
         breakpoints={{
           480: { slidesPerView: 2, spaceBetween: 16 },
-          768: { slidesPerView: 3, spaceBetween: 20 },
-          1024: { slidesPerView: 4, spaceBetween: 24 },
-          1280: { slidesPerView: 5, spaceBetween: 24 },
+          768: { slidesPerView: Math.min(3, maxPerView), spaceBetween: 20 },
+          1024: { slidesPerView: Math.min(4, maxPerView), spaceBetween: 24 },
+          1280: { slidesPerView: maxPerView, spaceBetween: 24 },
         }}
       >
         {products.map((product) => (

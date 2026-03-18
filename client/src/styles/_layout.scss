@@ -259,13 +259,14 @@
   background: $color-primary;
   padding: 0;
   border-bottom: 1px solid rgba(255,255,255,0.08);
+  position: relative;
+  z-index: 200;
 
   &__nav {
     display: flex;
     align-items: stretch;
-    overflow-x: auto;
-    scrollbar-width: none;
-    &::-webkit-scrollbar { display: none; }
+    // NO overflow-x aquí — rompería el mega-menu absoluto
+    // El scroll horizontal lo maneja el wrapper interno
 
     @media (min-width: 1600px) {
       .nav-link {
@@ -281,6 +282,34 @@
     }
   }
 
+  // Botón "Categorías" con fondo diferenciado
+  &__mega-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0 18px;
+    height: 100%;
+    min-height: 38px;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background var(--transition-fast);
+    letter-spacing: 0.01em;
+
+    &:hover, &.active {
+      background: rgba(255,255,255,0.25);
+    }
+  }
+
+  .mega-chevron {
+    transition: transform 0.2s ease;
+    &.open { transform: rotate(180deg); }
+  }
+
   .nav-link {
     color: rgba(255, 255, 255, 0.82) !important;
     font-size: 0.82rem;
@@ -292,6 +321,8 @@
     text-decoration: none !important;
     letter-spacing: 0.01em;
     border-bottom: 2px solid transparent;
+    display: inline-flex;
+    align-items: center;
 
     &:hover {
       background: rgba(255,255,255,0.10);
@@ -303,7 +334,98 @@
       border-bottom-color: $color-accent;
       background: rgba(255,255,255,0.08);
     }
+
+    // Ofertas con color llamativo
+    &--offers {
+      color: $color-accent !important;
+      font-weight: 700;
+
+      &:hover {
+        background: rgba($color-accent, 0.15);
+        color: lighten($color-accent, 10%) !important;
+      }
+    }
   }
+}
+
+// ── Mega Menu ─────────────────────────────────────────────────────────────────
+
+.mega-menu-wrapper {
+  position: static; // posiciona el mega menu relativo al .category-navbar
+  display: flex;
+  align-items: stretch;
+}
+
+.mega-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 9999;
+  background: #fff;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+  min-width: 640px;
+  max-width: 860px;
+  padding: 20px 24px;
+  animation: megaFadeIn 0.18s ease;
+
+  @media (max-width: 900px) {
+    min-width: 90vw;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 4px 20px;
+  }
+
+  &__group {
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
+
+    &:last-child { border-bottom: none; }
+  }
+
+  &__group-title {
+    display: block;
+    font-family: $font-display;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: $color-primary !important;
+    text-decoration: none !important;
+    padding: 2px 0 6px;
+    transition: color var(--transition-fast);
+
+    &:hover { color: $color-accent !important; }
+  }
+
+  &__sub-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  &__sub-link {
+    font-size: 0.78rem;
+    color: #6B7280 !important;
+    text-decoration: none !important;
+    padding: 3px 0;
+    display: block;
+    transition: color var(--transition-fast), padding-left var(--transition-fast);
+
+    &:hover {
+      color: $color-primary !important;
+      padding-left: 5px;
+    }
+  }
+}
+
+@keyframes megaFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 // ── Mobile Menu ───────────────────────────────────────────────────────────────

@@ -46,9 +46,9 @@ function SpotlightBlock({ category }: { category: Category }) {
             ) : (
               <CategoryPlaceholder name={category.name} />
             )}
-            <div className="featured-spotlight__card-label">
+           {/*  <div className="featured-spotlight__card-label">
               {category.name}
-            </div>
+            </div> */}
           </Link>
 
           {/* Swiper productos */}
@@ -56,6 +56,7 @@ function SpotlightBlock({ category }: { category: Category }) {
             <ProductSwiper
               filters={{ categorySlug: category.slug }}
               limit={8}
+              maxPerView={4}
             />
           </div>
         </div>

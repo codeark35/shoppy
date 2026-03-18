@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Collapse, Container } from 'react-bootstrap';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
   ShoppingCart, Heart, User, LogOut, Package,
-  BarChart2, Menu, X, Truck, Phone,
+  BarChart2, Menu, X, Truck, Phone, ChevronDown, Tag, Sparkles, Star, Zap,
 } from 'lucide-react';
 import { CartDrawer } from '../../features/cart/components/CartDrawer';
 import { LoginModal } from '../../features/auth/components/LoginModal';
@@ -18,9 +18,11 @@ export function AppNavbar() {
   const { cart, openCart } = useCartStore();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [megaOpen, setMegaOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
   const { data: categories } = useCategories();
+  const megaRef = useRef<HTMLDivElement>(null);
   const itemCount = cart.itemCount;
 
   useEffect(() => {
@@ -28,6 +30,19 @@ export function AppNavbar() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Cerrar mega-menu al hacer click fuera
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (megaRef.current && !megaRef.current.contains(e.target as Node)) {
+        setMegaOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const rootCategories = categories?.filter((c) => !c.parentId) ?? [];
 
   const handleLogout = async () => {
     try { await authService.logout(); } catch { /* ignorar */ }
@@ -188,20 +203,68 @@ export function AppNavbar() {
       <div className="category-navbar d-none d-md-block">
         <Container fluid="xl">
           <nav className="category-navbar__nav">
+
+            {/* Botón Categorías con mega-menú */}
+            <div className="mega-menu-wrapper" ref={megaRef}>
+              <button
+                className={`category-navbar__mega-btn${megaOpen ? ' active' : ''}`}
+                onClick={() => setMegaOpen((o) => !o)}
+                aria-expanded={megaOpen}
+              >
+                <Menu size={15} className="me-1" />
+                Categorías
+                <ChevronDown size={13} className={`mega-chevron${megaOpen ? ' open' : ''}`} />
+              </button>
+
+              {/* Mega-menú desplegable */}
+              {megaOpen && (
+                <div className="mega-menu mr-4" role="dialog" aria-label="Todas las categorías">
+                  <div className="mega-menu__grid">
+                    {rootCategories.map((cat) => (
+                      <div key={cat.id} className="mega-menu__group">
+                        <Link
+                          to={`/productos?categoria=${cat.slug}`}
+                          className="mega-menu__group-title"
+                          onClick={() => setMegaOpen(false)}
+                        >
+                          {cat.name}
+                        </Link>
+                        {cat.children?.length ? (
+                          <ul className="mega-menu__sub-list">
+                            {cat.children.map((sub) => (
+                              <li key={sub.id}>
+                                <Link
+                                  to={`/productos?categoria=${sub.slug}`}
+                                  className="mega-menu__sub-link"
+                                  onClick={() => setMegaOpen(false)}
+                                >
+                                  {sub.name}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Accesos rápidos */}
             <NavLink to="/" end className="nav-link">Inicio</NavLink>
-            <NavLink to="/productos" className="nav-link">Catálogo</NavLink>
-            {categories
-              ?.filter((c) => !c.parentId)
-              .slice(0, 6)
-              .map((cat) => (
-                <Link
-                  key={cat.id}
-                  to={`/productos?categoria=${cat.slug}`}
-                  className="nav-link"
-                >
-                  {cat.name}
-                </Link>
-              ))}
+            <Link to="/productos?onSale=true" className="nav-link nav-link--offers">
+              <Tag size={13} className="me-1" />Ofertas
+            </Link>
+            <Link to="/productos?featured=true" className="nav-link">
+              <Star size={13} className="me-1" />Destacados
+            </Link>
+            <Link to="/productos" className="nav-link">
+              <Sparkles size={13} className="me-1" />Novedades
+            </Link>
+            <Link to="/productos" className="nav-link">
+              <Zap size={13} className="me-1" />Más vendidos
+            </Link>
           </nav>
         </Container>
       </div>
