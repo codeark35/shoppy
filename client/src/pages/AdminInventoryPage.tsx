@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Form, Modal, Button, Spinner, Alert, Badge } from 'react-bootstrap';
-import { AlertTriangle, RefreshCw, Edit2 } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAdminInventory, useUpdateStock } from '../features/admin';
 import { formatPrice } from '../shared/utils/formatPrice';
 import type { AdminInventoryVariant } from '../features/admin';
@@ -94,10 +94,11 @@ function StockBar({ stock }: { stock: number }) {
 
 export default function AdminInventoryPage() {
   const [lowStock, setLowStock] = useState(false);
+  const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<AdminInventoryVariant | null>(null);
-  const { data, isLoading, isError, refetch } = useAdminInventory(lowStock);
+  const { data, isLoading, isError, refetch } = useAdminInventory(lowStock, page, 20);
 
-  const lowStockCount = data?.filter((v) => v.stock <= 5).length ?? 0;
+  const lowStockCount = data?.lowStockCount ?? 0;
 
   return (
     <div>
@@ -133,11 +134,11 @@ export default function AdminInventoryPage() {
               </span>
             }
             checked={lowStock}
-            onChange={(e) => setLowStock(e.target.checked)}
+            onChange={(e) => { setLowStock(e.target.checked); setPage(1); }}
           />
           {data && (
             <span className="small text-muted ms-auto">
-              {data.length} variante{data.length !== 1 ? 's' : ''}
+              {data.total} variante{data.total !== 1 ? 's' : ''}
             </span>
           )}
         </div>
@@ -171,7 +172,7 @@ export default function AdminInventoryPage() {
                   </td>
                 </tr>
               )}
-              {data?.map((variant) => (
+              {data?.items.map((variant) => (
                 <tr key={variant.id}>
                   <td className="ps-3">
                     <div className="fw-medium text-dark">{variant.product.name}</div>
@@ -200,7 +201,7 @@ export default function AdminInventoryPage() {
                   </td>
                 </tr>
               ))}
-              {!isLoading && !isError && data?.length === 0 && (
+              {!isLoading && !isError && data?.items.length === 0 && (
                 <tr>
                   <td colSpan={5} className="text-center py-5 text-muted">
                     {lowStock ? 'No hay variantes con stock bajo.' : 'No hay variantes registradas.'}
@@ -210,6 +211,21 @@ export default function AdminInventoryPage() {
             </tbody>
           </table>
         </div>
+        {data && data.totalPages > 1 && (
+          <div className="card-footer bg-transparent border-top d-flex align-items-center justify-content-between px-3 py-2">
+            <span className="small text-muted">
+              Página {data.page} de {data.totalPages} · {data.total} variantes
+            </span>
+            <div className="d-flex gap-2">
+              <Button variant="outline-secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+                <ChevronLeft size={14} />
+              </Button>
+              <Button variant="outline-secondary" size="sm" disabled={page >= data.totalPages} onClick={() => setPage((p) => p + 1)}>
+                <ChevronRight size={14} />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {editing && (

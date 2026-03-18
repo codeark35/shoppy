@@ -17,6 +17,13 @@ import type {
   UpdateCategoryPayload,
   AdminCoupon,
   CreateCouponPayload,
+  AdminPromotion,
+  CreatePromotionPayload,
+  UpdatePromotionPayload,
+  PromotionListQuery,
+  AdminBanner,
+  CreateBannerPayload,
+  UpdateBannerPayload,
 } from '../types/admin.types';
 import type { OrderStatus } from '../../orders/types/orders.types';
 
@@ -38,11 +45,12 @@ export const adminService = {
       .then((r) => r.data),
 
   // ── Inventario ─────────────────────────────────────────────────────────────
-  getInventory: (lowStock = false) =>
+  getInventory: (lowStock = false, page = 1, limit = 20) =>
     api
-      .get<AdminInventoryVariant[]>('/admin/inventory', {
-        params: lowStock ? { lowStock: 'true' } : {},
-      })
+      .get<{ items: AdminInventoryVariant[]; total: number; page: number; totalPages: number; lowStockCount: number }>(
+        '/admin/inventory',
+        { params: { ...(lowStock && { lowStock: 'true' }), page, limit } },
+      )
       .then((r) => r.data),
 
   updateStock: (variantId: string, stock: number) =>
@@ -84,6 +92,9 @@ export const adminService = {
   updateProduct: (id: string, payload: UpdateProductPayload) =>
     api.patch<AdminProduct>(`/catalog/products/${id}`, payload).then((r) => r.data),
 
+  getProductById: (id: string) =>
+    api.get<AdminProduct>(`/catalog/products/id/${id}`).then((r) => r.data),
+
   deleteProduct: (id: string) =>
     api.delete<{ message: string }>(`/catalog/products/${id}`).then((r) => r.data),
 
@@ -112,6 +123,11 @@ export const adminService = {
       .post<AdminProduct>(`/catalog/products/${productId}/variants`, payload)
       .then((r) => r.data),
 
+  deleteVariant: (productId: string, variantId: string) =>
+    api
+      .delete<{ message: string }>(`/catalog/products/${productId}/variants/${variantId}`)
+      .then((r) => r.data),
+
   // ── Categorías ────────────────────────────────────────────────────────────
   getCategories: () =>
     api.get<AdminCategory[]>('/catalog/categories').then((r) => r.data),
@@ -126,8 +142,13 @@ export const adminService = {
     api.delete<{ message: string }>(`/catalog/categories/${id}`).then((r) => r.data),
 
   // ── Cupones ───────────────────────────────────────────────────────────────
-  getCoupons: () =>
-    api.get<AdminCoupon[]>('/promotions/coupons').then((r) => r.data),
+  getCoupons: (page = 1, limit = 20) =>
+    api
+      .get<{ items: AdminCoupon[]; total: number; page: number; totalPages: number; activeCount: number; totalUses: number }>(
+        '/promotions/coupons',
+        { params: { page, limit } },
+      )
+      .then((r) => r.data),
 
   createCoupon: (payload: CreateCouponPayload) =>
     api.post<AdminCoupon>('/promotions/coupons', payload).then((r) => r.data),
@@ -136,4 +157,51 @@ export const adminService = {
     api
       .patch<AdminCoupon>(`/promotions/coupons/${id}/toggle`, { isActive })
       .then((r) => r.data),
+
+  // ── Promociones Automáticas ──────────────────────────────────────────────
+  getPromotions: (query: PromotionListQuery = {}) =>
+    api
+      .get<{ items: AdminPromotion[]; total: number; page: number; totalPages: number }>(        '/promotions/automatic',
+        { params: query },
+      )
+      .then((r) => r.data),
+
+  getPromotionById: (id: string) =>
+    api.get<AdminPromotion>(`/promotions/automatic/${id}`).then((r) => r.data),
+
+  createPromotion: (payload: CreatePromotionPayload) =>
+    api.post<AdminPromotion>('/promotions/automatic', payload).then((r) => r.data),
+
+  updatePromotion: (id: string, payload: UpdatePromotionPayload) =>
+    api.patch<AdminPromotion>(`/promotions/automatic/${id}`, payload).then((r) => r.data),
+
+  togglePromotion: (id: string, isActive: boolean) =>
+    api
+      .patch<AdminPromotion>(`/promotions/automatic/${id}/toggle`, { isActive })
+      .then((r) => r.data),
+
+  deletePromotion: (id: string) =>
+    api.delete<{ message: string }>(`/promotions/automatic/${id}`).then((r) => r.data),
+
+  // ── Banners ─────────────────────────────────────────────────────────────────
+  getBanners: (params?: { type?: string; isActive?: boolean }) =>
+    api.get<AdminBanner[]>('/banners/admin', { params }).then((r) => r.data),
+
+  getBannerById: (id: string) =>
+    api.get<AdminBanner>(`/banners/admin/${id}`).then((r) => r.data),
+
+  createBanner: (payload: CreateBannerPayload) =>
+    api.post<AdminBanner>('/banners/admin', payload).then((r) => r.data),
+
+  updateBanner: (id: string, payload: UpdateBannerPayload) =>
+    api.patch<AdminBanner>(`/banners/admin/${id}`, payload).then((r) => r.data),
+
+  toggleBanner: (id: string, isActive: boolean) =>
+    api.patch<AdminBanner>(`/banners/admin/${id}/toggle`, { isActive }).then((r) => r.data),
+
+  deleteBanner: (id: string) =>
+    api.delete<{ success: boolean }>(`/banners/admin/${id}`).then((r) => r.data),
+
+  reorderBanners: (items: { id: string; position: number }[]) =>
+    api.post<{ success: boolean }>('/banners/admin/reorder', { items }).then((r) => r.data),
 };

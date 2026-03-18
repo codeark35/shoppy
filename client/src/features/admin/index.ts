@@ -12,7 +12,9 @@ export {
   useDeleteProduct,
   useAddProductImage,
   useDeleteProductImage,
+  useAdminProductById,
   useAddVariant,
+  useDeleteVariant,
   useAdminCategories,
   useCreateCategory,
   useUpdateCategory,
@@ -20,6 +22,12 @@ export {
   useAdminCoupons,
   useCreateCoupon,
   useToggleCoupon,
+  useAdminPromotions,
+  useAdminPromotionById,
+  useCreatePromotion,
+  useUpdatePromotion,
+  useTogglePromotion,
+  useDeletePromotion,
 } from './hooks/useAdmin';
 export type {
   AdminOrder,
@@ -41,4 +49,9 @@ export type {
   AdminCoupon,
   CreateCouponPayload,
   DiscountType,
+  AdminPromotion,
+  CreatePromotionPayload,
+  UpdatePromotionPayload,
+  PromotionListQuery,
+  PromotionScope,
 } from './types/admin.types';

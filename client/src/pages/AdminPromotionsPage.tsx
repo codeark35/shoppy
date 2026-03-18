@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Badge, Button, Form, Modal, Alert, Spinner } from 'react-bootstrap';
-import { Plus, RefreshCw, ToggleLeft, ToggleRight, Tag, Percent, DollarSign } from 'lucide-react';
+import { Plus, RefreshCw, ToggleLeft, ToggleRight, Tag, Percent, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   useAdminCoupons,
   useCreateCoupon,
@@ -266,11 +266,13 @@ function CouponRow({ coupon }: CouponRowProps) {
 // ─── Página principal ─────────────────────────────────────────────────────────
 
 export default function AdminPromotionsPage() {
-  const { data: coupons = [], isLoading, isError, refetch } = useAdminCoupons();
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isError, refetch } = useAdminCoupons(page, 20);
   const [showCreate, setShowCreate] = useState(false);
 
-  const totalActive = coupons.filter((c) => c.isActive).length;
-  const totalUses = coupons.reduce((sum, c) => sum + c.usedCount, 0);
+  const coupons = data?.items ?? [];
+  const totalActive = data?.activeCount ?? 0;
+  const totalUses = data?.totalUses ?? 0;
 
   return (
     <div>
@@ -292,7 +294,7 @@ export default function AdminPromotionsPage() {
       {/* Stats */}
       <div className="row g-3 mb-3">
         {[
-          { label: 'Total cupones', value: coupons.length, icon: <Tag size={18} />, color: '#0F4C81' },
+          { label: 'Total cupones', value: data?.total ?? 0, icon: <Tag size={18} />, color: '#0F4C81' },
           { label: 'Activos', value: totalActive, icon: <ToggleRight size={18} />, color: '#198754' },
           { label: 'Total usos', value: totalUses, icon: <Percent size={18} />, color: '#6f42c1' },
         ].map(({ label, value, icon, color }) => (
@@ -346,6 +348,21 @@ export default function AdminPromotionsPage() {
             </tbody>
           </table>
         </div>
+        {data && data.totalPages > 1 && (
+          <div className="card-footer bg-transparent border-top d-flex align-items-center justify-content-between px-3 py-2">
+            <span className="small text-muted">
+              Página {data.page} de {data.totalPages} · {data.total} cupones
+            </span>
+            <div className="d-flex gap-2">
+              <Button variant="outline-secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+                <ChevronLeft size={14} />
+              </Button>
+              <Button variant="outline-secondary" size="sm" disabled={page >= data.totalPages} onClick={() => setPage((p) => p + 1)}>
+                <ChevronRight size={14} />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {showCreate && <CreateCouponModal onHide={() => setShowCreate(false)} />}

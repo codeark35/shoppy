@@ -68,6 +68,7 @@ export type AdminOrderQuery = {
 export interface AdminProductImage {
   id: string;
   url: string;
+  alt?: string;
   position: number;
 }
 
@@ -86,6 +87,7 @@ export interface AdminProduct {
   description: string;
   basePrice: number;
   isActive: boolean;
+  isFeatured: boolean;
   createdAt: string;
   category: { id: string; name: string; slug: string };
   images: AdminProductImage[];
@@ -98,6 +100,7 @@ export type AdminProductsQuery = {
   page?: number;
   limit?: number;
   includeInactive?: boolean;
+  featured?: boolean;
 };
 
 export type CreateProductPayload = {
@@ -107,6 +110,7 @@ export type CreateProductPayload = {
   basePrice: number;
   categoryId: string;
   isActive?: boolean;
+  isFeatured?: boolean;
 };
 
 export type UpdateProductPayload = Partial<CreateProductPayload>;
@@ -130,7 +134,10 @@ export interface AdminCategory {
   id: string;
   name: string;
   slug: string;
+  imageUrl?: string;
   parentId: string | null;
+  isFeatured?: boolean;
+  featuredPosition?: number;
   children?: AdminCategory[];
 }
 
@@ -138,6 +145,9 @@ export type CreateCategoryPayload = {
   name: string;
   slug: string;
   parentId?: string;
+  imageUrl?: string;
+  isFeatured?: boolean;
+  featuredPosition?: number;
 };
 
 export type UpdateCategoryPayload = Partial<CreateCategoryPayload>;
@@ -171,3 +181,86 @@ export type CreateCouponPayload = {
   validFrom: string;
   validUntil: string;
 };
+
+// ── Promociones Automáticas ──────────────────────────────────────────────────
+
+export type PromotionScope = 'PRODUCT' | 'CATEGORY';
+
+export interface AdminPromotion {
+  id: string;
+  name: string;
+  description?: string;
+  scope: PromotionScope;
+  discountType: DiscountType;
+  discountValue: number;
+  minPurchaseAmount?: number;
+  priority: number;
+  combinable: boolean;
+  validFrom: string;
+  validUntil?: string;
+  isActive: boolean;
+  createdAt: string;
+  products: Array<{ productId: string; product: { id: string; name: string } }>;
+  categories: Array<{ categoryId: string; category: { id: string; name: string } }>;
+}
+
+export type CreatePromotionPayload = {
+  name: string;
+  description?: string;
+  scope: PromotionScope;
+  discountType: DiscountType;
+  discountValue: number;
+  minPurchaseAmount?: number;
+  priority?: number;
+  combinable?: boolean;
+  validFrom: string;
+  validUntil?: string;
+  isActive?: boolean;
+  productIds?: string[];
+  categoryIds?: string[];
+};
+
+export type UpdatePromotionPayload = Partial<CreatePromotionPayload>;
+
+export type PromotionListQuery = {
+  page?: number;
+  limit?: number;
+  isActive?: boolean;
+  scope?: PromotionScope;
+  search?: string;
+};
+
+// ── Banners ────────────────────────────────────────────────────────────────────
+
+export type BannerType = 'HERO' | 'PROMO';
+
+export interface AdminBanner {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  imageUrl: string;
+  buttonText?: string | null;
+  buttonLink?: string | null;
+  type: BannerType;
+  isActive: boolean;
+  position: number;
+  validFrom?: string | null;
+  validUntil?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateBannerPayload {
+  title: string;
+  subtitle?: string;
+  imageUrl: string;
+  buttonText?: string;
+  buttonLink?: string;
+  type?: BannerType;
+  isActive?: boolean;
+  position?: number;
+  validFrom?: string;
+  validUntil?: string;
+}
+
+export type UpdateBannerPayload = Partial<CreateBannerPayload>;

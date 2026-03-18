@@ -35,7 +35,8 @@ export function FilterSidebar({ show, onHide, filters, onFiltersChange }: Props)
 
   const activeFiltersCount =
     (filters.categorySlug ? 1 : 0) +
-    (filters.minPrice !== undefined || filters.maxPrice !== undefined ? 1 : 0);
+    (filters.minPrice !== undefined || filters.maxPrice !== undefined ? 1 : 0) +
+    (filters.onSale ? 1 : 0);
 
   return (
     <Offcanvas show={show} onHide={onHide} placement="start">
@@ -88,6 +89,18 @@ export function FilterSidebar({ show, onHide, filters, onFiltersChange }: Props)
               ))}
             </div>
           )}
+        </div>
+
+        {/* En oferta */}
+        <div className="mb-4">
+          <p className="fw-semibold mb-2 text-uppercase small text-muted">Ofertas</p>
+          <Form.Check
+            type="switch"
+            id="filter-on-sale"
+            label={<span>Solo productos en oferta <span className="badge rounded-pill ms-1" style={{ background: '#16A34A', fontSize: '0.6rem' }}>OFERTA</span></span>}
+            checked={!!filters.onSale}
+            onChange={(e) => onFiltersChange({ ...filters, onSale: e.target.checked || undefined, page: 1 })}
+          />
         </div>
 
         {/* Rango de precio */}

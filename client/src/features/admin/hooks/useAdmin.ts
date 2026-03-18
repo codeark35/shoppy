@@ -10,6 +10,11 @@ import type {
   CreateCategoryPayload,
   UpdateCategoryPayload,
   CreateCouponPayload,
+  CreatePromotionPayload,
+  UpdatePromotionPayload,
+  PromotionListQuery,
+  CreateBannerPayload,
+  UpdateBannerPayload,
 } from '../types/admin.types';
 import type { OrderStatus } from '../../orders/types/orders.types';
 
@@ -39,10 +44,10 @@ export const useUpdateOrderStatus = () => {
 
 // ── Inventario ────────────────────────────────────────────────────────────────
 
-export const useAdminInventory = (lowStock = false) =>
+export const useAdminInventory = (lowStock = false, page = 1, limit = 20) =>
   useQuery({
-    queryKey: ['admin', 'inventory', lowStock],
-    queryFn: () => adminService.getInventory(lowStock),
+    queryKey: ['admin', 'inventory', lowStock, page, limit],
+    queryFn: () => adminService.getInventory(lowStock, page, limit),
   });
 
 export const useUpdateStock = () => {
@@ -122,11 +127,27 @@ export const useDeleteProductImage = () => {
   });
 };
 
+export const useAdminProductById = (id: string | null) =>
+  useQuery({
+    queryKey: ['admin', 'product', id],
+    queryFn: () => adminService.getProductById(id!),
+    enabled: !!id,
+  });
+
 export const useAddVariant = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ productId, payload }: { productId: string; payload: CreateVariantPayload }) =>
       adminService.addVariant(productId, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'products'] }),
+  });
+};
+
+export const useDeleteVariant = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ productId, variantId }: { productId: string; variantId: string }) =>
+      adminService.deleteVariant(productId, variantId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'products'] }),
   });
 };
@@ -175,11 +196,62 @@ export const useDeleteCategory = () => {
 
 // ── Cupones ───────────────────────────────────────────────────────────────────
 
-export const useAdminCoupons = () =>
+export const useAdminCoupons = (page = 1, limit = 20) =>
   useQuery({
-    queryKey: ['admin', 'coupons'],
-    queryFn: () => adminService.getCoupons(),
+    queryKey: ['admin', 'coupons', page, limit],
+    queryFn: () => adminService.getCoupons(page, limit),
   });
+
+// ── Promociones Automáticas ──────────────────────────────────────────────────
+
+export const useAdminPromotions = (query: PromotionListQuery = {}) =>
+  useQuery({
+    queryKey: ['admin', 'promotions', query],
+    queryFn: () => adminService.getPromotions(query),
+  });
+
+export const useAdminPromotionById = (id: string | null) =>
+  useQuery({
+    queryKey: ['admin', 'promotion', id],
+    queryFn: () => adminService.getPromotionById(id!),
+    enabled: !!id,
+  });
+
+export const useCreatePromotion = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CreatePromotionPayload) => adminService.createPromotion(payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'promotions'] }),
+  });
+};
+
+export const useUpdatePromotion = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdatePromotionPayload }) =>
+      adminService.updatePromotion(id, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'promotions'] }),
+  });
+};
+
+export const useTogglePromotion = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+      adminService.togglePromotion(id, isActive),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'promotions'] }),
+  });
+};
+
+export const useDeletePromotion = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => adminService.deletePromotion(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'promotions'] }),
+  });
+};
+
+// ── Cupones ───────────────────────────────────────────────────────────────────
 
 export const useCreateCoupon = () => {
   const qc = useQueryClient();
@@ -195,5 +267,47 @@ export const useToggleCoupon = () => {
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
       adminService.toggleCoupon(id, isActive),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'coupons'] }),
+  });
+};
+
+// ── Banners ─────────────────────────────────────────────────────────────────
+
+export const useAdminBanners = (params?: { type?: string; isActive?: boolean }) =>
+  useQuery({
+    queryKey: ['admin', 'banners', params],
+    queryFn: () => adminService.getBanners(params),
+  });
+
+export const useCreateBanner = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CreateBannerPayload) => adminService.createBanner(payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'banners'] }),
+  });
+};
+
+export const useUpdateBanner = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateBannerPayload }) =>
+      adminService.updateBanner(id, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'banners'] }),
+  });
+};
+
+export const useToggleBanner = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+      adminService.toggleBanner(id, isActive),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'banners'] }),
+  });
+};
+
+export const useDeleteBanner = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => adminService.deleteBanner(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'banners'] }),
   });
 };

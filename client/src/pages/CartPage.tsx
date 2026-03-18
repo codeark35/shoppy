@@ -1,22 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Button, Card, Table, Image, Alert, InputGroup, Form, Spinner } from 'react-bootstrap';
-import { Trash2, ShoppingCart, Tag, CheckCircle } from 'lucide-react';
+import { Trash2, ShoppingCart, Tag, CheckCircle, Zap } from 'lucide-react';
 import { AppNavbar } from '../shared/components/AppNavbar';
 import { BottomNav } from '../shared/components/BottomNav';
+import { AppFooter } from '../shared/components/AppFooter';
 import { useCartStore } from '../features/cart/store/cartStore';
 import { useAuthStore } from '../features/auth/store/authStore';
+import { useCartPricing } from '../features/cart/hooks/useCartPricing';
 import { formatPrice } from '../shared/utils/formatPrice';
-import api from '../shared/lib/api';
-
-interface CouponResult {
-  couponId: string;
-  code: string;
-  discount: number;
-  finalTotal: number;
-  discountType: string;
-  discountValue: number;
-}
 
 export function CartPage() {
   const { cart, removeItem, updateItem } = useCartStore();
@@ -25,36 +17,38 @@ export function CartPage() {
   const navigate = useNavigate();
 
   const [couponCode, setCouponCode] = useState('');
-  const [coupon, setCoupon] = useState<CouponResult | null>(null);
-  const [couponError, setCouponError] = useState('');
-  const [couponLoading, setCouponLoading] = useState(false);
+  const [appliedCouponCode, setAppliedCouponCode] = useState<string | undefined>(undefined);
 
-  const discount = coupon?.discount ?? 0;
-  const finalTotal = total - discount;
+  const {
+    data: pricing,
+    isLoading: pricingLoading,
+    isError: pricingError,
+    error: pricingErrorData,
+  } = useCartPricing(items, appliedCouponCode);
 
-  const handleApplyCoupon = async () => {
-    if (!couponCode.trim()) return;
-    setCouponLoading(true);
-    setCouponError('');
-    setCoupon(null);
-    try {
-      const res = await api.post<CouponResult>('/promotions/validate', {
-        code: couponCode.trim(),
-        subtotal: total,
-      });
-      setCoupon(res.data);
-    } catch (err: any) {
-      setCouponError(err?.response?.data?.message ?? 'Cupón no válido');
-    } finally {
-      setCouponLoading(false);
-    }
+  const autoDiscount = pricing?.automaticDiscount ?? 0;
+  const couponDiscount = pricing?.couponDiscount ?? 0;
+  const finalTotal = pricing?.subtotalAfter ?? total;
+
+  const couponErrorMsg = pricingError && appliedCouponCode
+    ? ((pricingErrorData as any)?.response?.data?.message ?? 'Cupón no válido')
+    : '';
+
+  const handleApplyCoupon = () => {
+    const code = couponCode.trim();
+    if (code) setAppliedCouponCode(code);
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCouponCode(undefined);
+    setCouponCode('');
   };
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
       navigate('/checkout?login=1');
     } else {
-      navigate('/checkout', { state: { coupon } });
+      navigate('/checkout', { state: { couponCode: appliedCouponCode } });
     }
   };
 
@@ -163,13 +157,13 @@ export function CartPage() {
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                       onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
-                      disabled={!!coupon}
+                      disabled={!!appliedCouponCode}
                     />
-                    {coupon ? (
+                    {appliedCouponCode ? (
                       <Button
                         variant="outline-secondary"
                         size="sm"
-                        onClick={() => { setCoupon(null); setCouponCode(''); }}
+                        onClick={handleRemoveCoupon}
                       >
                         Quitar
                       </Button>
@@ -178,17 +172,17 @@ export function CartPage() {
                         variant="outline-primary"
                         size="sm"
                         onClick={handleApplyCoupon}
-                        disabled={couponLoading || !couponCode.trim()}
+                        disabled={pricingLoading || !couponCode.trim()}
                       >
-                        {couponLoading ? <Spinner size="sm" /> : 'Aplicar'}
+                        {pricingLoading ? <Spinner size="sm" /> : 'Aplicar'}
                       </Button>
                     )}
                   </InputGroup>
-                  {couponError && <p className="text-danger small mt-1">{couponError}</p>}
-                  {coupon && (
+                  {couponErrorMsg && <p className="text-danger small mt-1">{couponErrorMsg}</p>}
+                  {appliedCouponCode && !pricingError && pricing?.appliedCouponCode && (
                     <p className="text-success small mt-1">
                       <CheckCircle size={14} className="me-1" />
-                      Cupón <strong>{coupon.code}</strong> aplicado — ahorrás {formatPrice(coupon.discount)}
+                      Cupón <strong>{pricing.appliedCouponCode}</strong> aplicado — ahorrás {formatPrice(couponDiscount)}
                     </p>
                   )}
                 </div>
@@ -197,10 +191,18 @@ export function CartPage() {
                   <span className="text-muted">Subtotal</span>
                   <span>{formatPrice(total)}</span>
                 </div>
-                {coupon && (
+                {autoDiscount > 0 && (
                   <div className="d-flex justify-content-between mb-2 text-success">
-                    <span>Descuento ({coupon.code})</span>
-                    <span>− {formatPrice(coupon.discount)}</span>
+                    <span className="d-flex align-items-center gap-1">
+                      <Zap size={13} /> Descuentos automáticos
+                    </span>
+                    <span>− {formatPrice(autoDiscount)}</span>
+                  </div>
+                )}
+                {couponDiscount > 0 && (
+                  <div className="d-flex justify-content-between mb-2 text-success">
+                    <span>Descuento ({pricing?.appliedCouponCode})</span>
+                    <span>− {formatPrice(couponDiscount)}</span>
                   </div>
                 )}
                 <div className="d-flex justify-content-between mb-3">
@@ -225,6 +227,7 @@ export function CartPage() {
           </Col>
         </Row>
       </Container>
+      <AppFooter />
       <BottomNav />
     </>
   );

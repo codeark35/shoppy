@@ -4,6 +4,7 @@ import { Container, Card, Row, Col, Form, Button, Alert, Spinner, Badge } from '
 import { Bell, BellOff } from 'lucide-react';
 import { AppNavbar } from '../shared/components/AppNavbar';
 import { BottomNav } from '../shared/components/BottomNav';
+import { AppFooter } from '../shared/components/AppFooter';
 import { AddressManager } from '../features/account/components/AddressManager';
 import { useProfile, useUpdateProfile } from '../features/account/hooks/useAccount';
 import { useAuthStore } from '../features/auth/store/authStore';
@@ -181,6 +182,7 @@ export function AccountPage() {
           </Row>
         )}
       </Container>
+      <AppFooter />
       <BottomNav />
     </>
   );

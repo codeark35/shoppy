@@ -3,6 +3,7 @@ import { Container, Row, Col, Form, InputGroup, Button } from 'react-bootstrap';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { AppNavbar } from '../shared/components/AppNavbar';
 import { BottomNav } from '../shared/components/BottomNav';
+import { AppFooter } from '../shared/components/AppFooter';
 import { ProductGrid } from '../features/catalog/components/ProductGrid';
 import { FilterSidebar } from '../features/catalog/components/FilterSidebar';
 import { CategoryNav } from '../features/catalog/components/CategoryNav';
@@ -22,7 +23,8 @@ export function CatalogPage() {
 
   const activeCount =
     (filters.categorySlug ? 1 : 0) +
-    (filters.minPrice !== undefined || filters.maxPrice !== undefined ? 1 : 0);
+    (filters.minPrice !== undefined || filters.maxPrice !== undefined ? 1 : 0) +
+    (filters.onSale ? 1 : 0);
 
   return (
     <>
@@ -71,6 +73,7 @@ export function CatalogPage() {
         onFiltersChange={setFilters}
       />
 
+      <AppFooter />
       <BottomNav />
     </>
   );

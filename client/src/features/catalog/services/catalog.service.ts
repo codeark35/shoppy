@@ -19,4 +19,9 @@ export const catalogService = {
     const { data } = await api.get<Category[]>('/catalog/categories');
     return data;
   },
+
+  async getFeaturedCategories(): Promise<Category[]> {
+    const { data } = await api.get<Category[]>('/catalog/categories/featured');
+    return data;
+  },
 };

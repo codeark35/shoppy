@@ -3,6 +3,7 @@ import { Container, Card, Spinner, Alert } from 'react-bootstrap';
 import { CheckCircle, XCircle, Clock } from 'lucide-react';
 import { AppNavbar } from '../shared/components/AppNavbar';
 import { BottomNav } from '../shared/components/BottomNav';
+import { AppFooter } from '../shared/components/AppFooter';
 import { useOrderDetail } from '../features/orders/hooks/useOrders';
 
 export function CheckoutResultPage() {
@@ -79,6 +80,7 @@ export function CheckoutResultPage() {
           </Card.Body>
         </Card>
       </Container>
+      <AppFooter />
       <BottomNav />
     </>
   );

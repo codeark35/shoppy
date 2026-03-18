@@ -46,8 +46,16 @@ export class AdminController {
   // ─── Stock ────────────────────────────────────────────────────────────────────
   @Get('inventory')
   @Roles(Role.ADMIN, Role.WAREHOUSE)
-  getInventory(@Query('lowStock') lowStock?: string) {
-    return this.adminService.getInventory(lowStock === 'true');
+  getInventory(
+    @Query('lowStock') lowStock?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.adminService.getInventory(
+      lowStock === 'true',
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 20,
+    );
   }
 
   @Patch('inventory/variants/:variantId/stock')

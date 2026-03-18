@@ -5,6 +5,11 @@
 // 2. Bootstrap (uses overridden variables)
 @import 'bootstrap/scss/bootstrap';
 
+// 3. Swiper CSS
+@import 'swiper/css';
+@import 'swiper/css/navigation';
+@import 'swiper/css/pagination';
+
 // 3. Custom components and utilities (after Bootstrap for proper specificity)
 @import 'components';
 

@@ -56,21 +56,24 @@ export class OrdersService {
       cart.items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })),
     );
 
-    let subtotal = Number(cart.total);
-    let discountAmount: Decimal | undefined;
-    let couponId: string | undefined;
+    const pricing = await this.promotionsService.calculatePricing(cart.items, {
+      couponCode: dto.couponCode,
+      strategy: dto.promotionStrategy,
+    });
 
-    // Aplicar cupón si se proporcionó
-    if (dto.couponCode) {
-      const couponResult = await this.promotionsService.validateCoupon({
-        code: dto.couponCode,
-        subtotal,
-      });
-      discountAmount = new Decimal(couponResult.discount);
-      couponId = couponResult.couponId;
-      subtotal = couponResult.finalTotal;
+    // Mapa variantId → descuento de línea (todas las unidades) para snapshot
+    const discountByVariant = new Map(
+      pricing.appliedItems.map((a) => [a.variantId, a]),
+    );
 
-      // Incrementar contador de uso
+    let subtotal = pricing.subtotalAfter;
+    const discountAmount: Decimal | undefined = pricing.totalDiscount > 0
+      ? new Decimal(pricing.totalDiscount)
+      : undefined;
+    const couponId = pricing.appliedCouponId;
+
+    if (couponId) {
+      // Incrementar contador de uso solo si el cupón quedó aplicado
       await this.prisma.coupon.update({
         where: { id: couponId },
         data: { usedCount: { increment: 1 } },
@@ -85,7 +88,7 @@ export class OrdersService {
       shippingCost = Number(rate.price);
     }
 
-    const finalTotal = new Decimal(subtotal + shippingCost);
+    const finalTotal = new Decimal((subtotal + shippingCost).toFixed(2));
 
     const order = await this.prisma.order.create({
       data: {
@@ -109,14 +112,25 @@ export class OrdersService {
           },
         },
         items: {
-          create: cart.items.map((item) => ({
-            variantId: item.variantId,
-            sku: item.sku,
-            name: item.name,
-            imageUrl: item.imageUrl,
-            price: item.price,
-            quantity: item.quantity,
-          })),
+          create: cart.items.map((item) => {
+            const applied = discountByVariant.get(item.variantId);
+            const unitDiscountApplied = applied
+              ? new Decimal((applied.discount / item.quantity).toFixed(2))
+              : new Decimal(0);
+            const unitPriceFinal = new Decimal(
+              Math.max(0, item.price - Number(unitDiscountApplied)).toFixed(2),
+            );
+            return {
+              variantId: item.variantId,
+              sku: item.sku,
+              name: item.name,
+              imageUrl: item.imageUrl,
+              price: item.price,
+              quantity: item.quantity,
+              unitDiscountApplied,
+              unitPriceFinal,
+            };
+          }),
         },
       },
       include: {

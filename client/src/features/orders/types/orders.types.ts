@@ -15,9 +15,11 @@ export interface OrderItem {
   variantId: string;
   name: string;
   sku: string;
-  price: number;
+  price: number;               // precio unitario original (snapshot)
   quantity: number;
   imageUrl?: string;
+  unitDiscountApplied?: number; // descuento por unidad (null = sin descuento)
+  unitPriceFinal?: number;      // precio unitario final tras descuento
 }
 
 export interface Order {

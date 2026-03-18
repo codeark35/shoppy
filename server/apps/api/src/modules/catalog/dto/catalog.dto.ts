@@ -14,6 +14,20 @@ export class CreateCategoryDto {
   @IsOptional()
   @IsString()
   parentId?: string;
+
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  isFeatured?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  featuredPosition?: number;
 }
 
 export class UpdateCategoryDto {
@@ -28,6 +42,20 @@ export class UpdateCategoryDto {
   @IsOptional()
   @IsString()
   parentId?: string;
+
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  isFeatured?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  featuredPosition?: number;
 }
 
 export class CreateVariantDto {
@@ -81,6 +109,10 @@ export class CreateProductDto {
   isActive?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  isFeatured?: boolean;
+
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateVariantDto)
@@ -112,6 +144,10 @@ export class UpdateProductDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isFeatured?: boolean;
 }
 
 export class ProductQueryDto {
@@ -156,4 +192,15 @@ export class ProductQueryDto {
   @IsBoolean()
   @Type(() => Boolean)
   includeInactive?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  featured?: boolean;
+
+  /** Filtra productos que tienen al menos una promoción automática activa */
+  @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  onSale?: boolean;
 }

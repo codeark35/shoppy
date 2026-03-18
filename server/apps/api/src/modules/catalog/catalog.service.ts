@@ -41,6 +41,13 @@ export class CatalogService {
     return categories;
   }
 
+  async getFeaturedCategories() {
+    return this.prisma.category.findMany({
+      where: { isFeatured: true },
+      orderBy: { featuredPosition: 'asc' },
+    });
+  }
+
   async createCategory(dto: CreateCategoryDto) {
     const existing = await this.prisma.category.findUnique({
       where: { slug: dto.slug },
@@ -75,6 +82,8 @@ export class CatalogService {
 
     const where: any = query.includeInactive ? {} : { isActive: true };
 
+    if (query.featured) where.isFeatured = true;
+
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
@@ -95,6 +104,34 @@ export class CatalogService {
       if (maxPrice) where.basePrice.lte = maxPrice;
     }
 
+    if (query.onSale) {
+      const now = new Date();
+      const activeWhere = {
+        isActive: true,
+        validFrom: { lte: now },
+        OR: [{ validUntil: null }, { validUntil: { gte: now } }],
+      };
+      const [ppRows, cpRows] = await Promise.all([
+        this.prisma.promotionProduct.findMany({
+          where: { promotion: activeWhere },
+          select: { productId: true },
+        }),
+        this.prisma.promotionCategory.findMany({
+          where: { promotion: activeWhere },
+          select: { categoryId: true },
+        }),
+      ]);
+      const onSaleIds = new Set<string>(ppRows.map((r) => r.productId));
+      if (cpRows.length) {
+        const catProductIds = await this.prisma.product.findMany({
+          where: { categoryId: { in: cpRows.map((r) => r.categoryId) }, isActive: true },
+          select: { id: true },
+        });
+        catProductIds.forEach((p) => onSaleIds.add(p.id));
+      }
+      where.id = { in: [...onSaleIds] };
+    }
+
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
@@ -102,7 +139,7 @@ export class CatalogService {
         take: limit,
         include: {
           category: { select: { id: true, name: true, slug: true } },
-          images: { orderBy: { position: 'asc' }, take: 1 },
+          images: { orderBy: { position: 'asc' } },
           variants: { select: { id: true, sku: true, price: true, stock: true, attributes: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -110,27 +147,44 @@ export class CatalogService {
       this.prisma.product.count({ where }),
     ]);
 
-    return paginatedResult(products, total, page, limit);
+    const promoMap = await this.computeActivePromotionsMap(
+      products.map((p) => ({ id: p.id, categoryId: p.categoryId })),
+    );
+    const result = paginatedResult(products, total, page, limit);
+    return {
+      ...result,
+      data: result.data.map((p) => ({
+        ...p,
+        activePromotion: promoMap.get(p.id) ?? null,
+      })),
+    };
   }
 
   async getProductBySlug(slug: string) {
     const cacheKey = `catalog:product:${slug}`;
     const cached = await this.redis.getJson<any>(cacheKey);
-    if (cached) return cached;
 
-    const product = await this.prisma.product.findUnique({
-      where: { slug, isActive: true },
-      include: {
-        category: true,
-        images: { orderBy: { position: 'asc' } },
-        variants: true,
-      },
-    });
+    let product: any;
+    if (cached) {
+      product = cached;
+    } else {
+      product = await this.prisma.product.findUnique({
+        where: { slug, isActive: true },
+        include: {
+          category: true,
+          images: { orderBy: { position: 'asc' } },
+          variants: true,
+        },
+      });
+      if (!product) throw new NotFoundException('Producto no encontrado');
+      await this.redis.setJson(cacheKey, product, CATALOG_CACHE_TTL);
+    }
 
-    if (!product) throw new NotFoundException('Producto no encontrado');
-
-    await this.redis.setJson(cacheKey, product, CATALOG_CACHE_TTL);
-    return product;
+    // activePromotion siempre fresco (no cacheado)
+    const promoMap = await this.computeActivePromotionsMap([
+      { id: product.id, categoryId: product.categoryId },
+    ]);
+    return { ...product, activePromotion: promoMap.get(product.id) ?? null };
   }
 
   async getProductById(id: string) {
@@ -144,6 +198,74 @@ export class CatalogService {
     });
     if (!product) throw new NotFoundException('Producto no encontrado');
     return product;
+  }
+
+  // ── Helpers internos ─────────────────────────────────────────────────────────
+
+  private async computeActivePromotionsMap(
+    products: Array<{ id: string; categoryId: string | null }>,
+  ): Promise<Map<string, { name: string; discountType: string; discountValue: number }>> {
+    if (!products.length) return new Map();
+    const now = new Date();
+    const productIds = products.map((p) => p.id);
+    const categoryIds = [
+      ...new Set(products.map((p) => p.categoryId).filter(Boolean)),
+    ] as string[];
+
+    const activeWhere = {
+      isActive: true,
+      validFrom: { lte: now },
+      OR: [{ validUntil: null }, { validUntil: { gte: now } }],
+    };
+
+    const [productPromos, categoryPromos] = await Promise.all([
+      this.prisma.promotionProduct.findMany({
+        where: { productId: { in: productIds }, promotion: activeWhere },
+        include: {
+          promotion: {
+            select: { name: true, discountType: true, discountValue: true, priority: true },
+          },
+        },
+      }),
+      categoryIds.length
+        ? this.prisma.promotionCategory.findMany({
+            where: { categoryId: { in: categoryIds }, promotion: activeWhere },
+            include: {
+              promotion: {
+                select: { name: true, discountType: true, discountValue: true, priority: true },
+              },
+            },
+          })
+        : Promise.resolve([]),
+    ]);
+
+    const result = new Map<string, { name: string; discountType: string; discountValue: number }>();
+
+    for (const product of products) {
+      const candidates = [
+        ...productPromos.filter((pp) => pp.productId === product.id).map((pp) => pp.promotion),
+        ...(product.categoryId
+          ? categoryPromos
+              .filter((cp) => cp.categoryId === product.categoryId)
+              .map((cp) => cp.promotion)
+          : []),
+      ];
+      if (!candidates.length) continue;
+
+      const best = candidates.reduce((a, b) =>
+        Number(b.discountValue) > Number(a.discountValue) ||
+        (Number(b.discountValue) === Number(a.discountValue) && b.priority > a.priority)
+          ? b
+          : a,
+      );
+      result.set(product.id, {
+        name: best.name,
+        discountType: best.discountType as string,
+        discountValue: Number(best.discountValue),
+      });
+    }
+
+    return result;
   }
 
   async createProduct(dto: CreateProductDto) {
@@ -225,5 +347,14 @@ export class CatalogService {
     });
     if (!variant) throw new NotFoundException('Variante no encontrada');
     return variant;
+  }
+
+  async removeVariant(productId: string, variantId: string) {
+    const variant = await this.prisma.productVariant.findFirst({
+      where: { id: variantId, productId },
+    });
+    if (!variant) throw new NotFoundException('Variante no encontrada');
+    await this.prisma.productVariant.delete({ where: { id: variantId } });
+    return { message: 'Variante eliminada' };
   }
 }

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
-import { Truck } from 'lucide-react';
+import { Truck, Zap } from 'lucide-react';
 import { AppNavbar } from '../shared/components/AppNavbar';
 import { BottomNav } from '../shared/components/BottomNav';
+import { AppFooter } from '../shared/components/AppFooter';
 import { useAuthStore } from '../features/auth/store/authStore';
 import { useCartStore } from '../features/cart/store/cartStore';
 import { useCheckout } from '../features/checkout/hooks/useCheckout';
+import { useCartPricing } from '../features/cart/hooks/useCartPricing';
 import { formatPrice } from '../shared/utils/formatPrice';
 import api from '../shared/lib/api';
 import type { CreateOrderDto } from '../features/checkout/types/checkout.types';
@@ -27,10 +29,12 @@ export function CheckoutPage() {
   const location = useLocation();
   const { createOrderAndPay, isLoading, error } = useCheckout();
 
-  // Cupón pasado desde CartPage via router state
-  const couponFromCart = (location.state as any)?.coupon ?? null;
-  const couponCode = couponFromCart?.code as string | undefined;
-  const couponDiscount = couponFromCart?.discount ?? 0;
+  // Cupón y pricing pasados desde CartPage via router state
+  const couponCode = (location.state as any)?.couponCode as string | undefined;
+
+  const { data: pricing } = useCartPricing(items, couponCode);
+  const autoDiscount = pricing?.automaticDiscount ?? 0;
+  const couponDiscount = pricing?.couponDiscount ?? 0;
 
   const [form, setForm] = useState({
     street: '',
@@ -71,7 +75,7 @@ export function CheckoutPage() {
 
   const selectedRateObj = shippingRates.find((r) => r.id === selectedRate);
   const shippingCost = selectedRateObj ? Number(selectedRateObj.price) : 0;
-  const finalTotal = total - couponDiscount + shippingCost;
+  const finalTotal = (pricing?.subtotalAfter ?? total - couponDiscount) + shippingCost;
 
   if (!isAuthenticated) {
     navigate('/');
@@ -247,6 +251,14 @@ export function CheckoutPage() {
                   <span>Subtotal</span>
                   <span>{formatPrice(total)}</span>
                 </div>
+                {autoDiscount > 0 && (
+                  <div className="d-flex justify-content-between mb-1 small text-success">
+                    <span className="d-flex align-items-center gap-1">
+                      <Zap size={11} /> Descuentos automáticos
+                    </span>
+                    <span>− {formatPrice(autoDiscount)}</span>
+                  </div>
+                )}
                 {couponDiscount > 0 && (
                   <div className="d-flex justify-content-between mb-1 small text-success">
                     <span>Descuento ({couponCode})</span>
@@ -280,6 +292,7 @@ export function CheckoutPage() {
           </Col>
         </Row>
       </Container>
+      <AppFooter />
       <BottomNav />
     </>
   );

@@ -26,3 +26,11 @@ export function useCategories() {
     staleTime: 1000 * 60 * 15,
   });
 }
+
+export function useFeaturedCategories() {
+  return useQuery({
+    queryKey: ['categories', 'featured'],
+    queryFn: () => catalogService.getFeaturedCategories(),
+    staleTime: 1000 * 60 * 5,
+  });
+}

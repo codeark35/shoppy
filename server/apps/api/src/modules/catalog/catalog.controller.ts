@@ -22,6 +22,11 @@ export class CatalogController {
     return this.catalogService.getCategories();
   }
 
+  @Get('categories/featured')
+  getFeaturedCategories() {
+    return this.catalogService.getFeaturedCategories();
+  }
+
   @Post('categories')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
@@ -49,7 +54,13 @@ export class CatalogController {
   getProducts(@Query() query: ProductQueryDto) {
     return this.catalogService.getProducts(query);
   }
-
+  // IMPORTANT: must be declared BEFORE products/:slug to avoid 'id' matching the slug param
+  @Get('products/id/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  getProductById(@Param('id') id: string) {
+    return this.catalogService.getProductById(id);
+  }
   @Get('products/:slug')
   getProductBySlug(@Param('slug') slug: string) {
     return this.catalogService.getProductBySlug(slug);
@@ -100,4 +111,10 @@ export class CatalogController {
   addVariant(@Param('id') productId: string, @Body() dto: CreateVariantDto) {
     return this.catalogService.addVariant(productId, dto);
   }
-}
+  @Delete('products/:id/variants/:variantId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  removeVariant(@Param('id') productId: string, @Param('variantId') variantId: string) {
+    return this.catalogService.removeVariant(productId, variantId);
+  }}

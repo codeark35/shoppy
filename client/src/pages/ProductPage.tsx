@@ -4,6 +4,7 @@ import { Container, Row, Col, Button, Spinner, Alert, Badge } from 'react-bootst
 import { ShoppingCart } from 'lucide-react';
 import { AppNavbar } from '../shared/components/AppNavbar';
 import { BottomNav } from '../shared/components/BottomNav';
+import { AppFooter } from '../shared/components/AppFooter';
 import { useProductDetail } from '../features/catalog/hooks/useProducts';
 import { useCartStore } from '../features/cart/store/cartStore';
 import { formatPrice } from '../shared/utils/formatPrice';
@@ -13,6 +14,7 @@ export function ProductPage() {
   const { data: product, isLoading, isError } = useProductDetail(slug!);
   const { addItem } = useCartStore();
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   if (isLoading) {
     return (
@@ -56,12 +58,52 @@ export function ProductPage() {
       <Container className="py-4">
         <Row>
           <Col md={6}>
-            {product.images[0] ? (
-              <img
-                src={product.images[0].url}
-                alt={product.name}
-                className="img-fluid rounded shadow-sm"
-              />
+            {product.images.length > 0 ? (
+              <div>
+                {/* Imagen principal */}
+                <div
+                  className="rounded shadow-sm overflow-hidden mb-2"
+                  style={{ aspectRatio: '1/1', background: '#f8f9fa' }}
+                >
+                  <img
+                    src={product.images[activeImageIndex]?.url}
+                    alt={product.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                </div>
+                {/* Thumbnails */}
+                {product.images.length > 1 && (
+                  <div className="d-flex gap-2 flex-wrap">
+                    {product.images.map((img, i) => (
+                      <button
+                        key={img.id}
+                        onClick={() => setActiveImageIndex(i)}
+                        style={{
+                          width: 64,
+                          height: 64,
+                          padding: 0,
+                          border: i === activeImageIndex ? '2px solid #1a3a5c' : '2px solid transparent',
+                          borderRadius: 6,
+                          overflow: 'hidden',
+                          background: '#f8f9fa',
+                          cursor: 'pointer',
+                          flexShrink: 0,
+                          outline: 'none',
+                          opacity: i === activeImageIndex ? 1 : 0.65,
+                          transition: 'opacity 0.15s, border-color 0.15s',
+                        }}
+                      >
+                        <img
+                          src={img.url}
+                          alt={`${product.name} ${i + 1}`}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/64x64?text=?'; }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="bg-light rounded d-flex align-items-center justify-content-center" style={{ height: 400 }}>
                 <span className="text-muted">Sin imagen</span>
@@ -107,6 +149,7 @@ export function ProductPage() {
           </Col>
         </Row>
       </Container>
+      <AppFooter />
       <BottomNav />
     </>
   );

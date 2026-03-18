@@ -2,7 +2,10 @@ export interface Category {
   id: string;
   name: string;
   slug: string;
+  imageUrl?: string;
   parentId?: string;
+  isFeatured?: boolean;
+  featuredPosition?: number;
   children?: Category[];
 }
 
@@ -31,7 +34,13 @@ export interface Product {
   images: ProductImage[];
   variants: ProductVariant[];
   isActive: boolean;
+  isFeatured: boolean;
   createdAt: string;
+  activePromotion?: {
+    name: string;
+    discountType: 'PERCENTAGE' | 'FIXED';
+    discountValue: number;
+  } | null;
 }
 
 export interface ProductFilters {
@@ -41,4 +50,6 @@ export interface ProductFilters {
   maxPrice?: number;
   page?: number;
   limit?: number;
+  featured?: boolean;
+  onSale?: boolean;
 }

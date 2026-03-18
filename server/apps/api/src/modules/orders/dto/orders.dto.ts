@@ -1,6 +1,6 @@
 import {
   IsString, IsOptional, IsArray,
-  ValidateNested, IsObject,
+  ValidateNested, IsObject, IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -49,6 +49,10 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   shippingRateId?: string;
+
+  @IsOptional()
+  @IsIn(['AUTO_FIRST', 'COUPON_FIRST', 'BEST_PRICE'])
+  promotionStrategy?: 'AUTO_FIRST' | 'COUPON_FIRST' | 'BEST_PRICE';
 }
 
 export class UpdateOrderStatusDto {

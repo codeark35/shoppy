@@ -20,9 +20,12 @@ const AdminOrdersPage    = lazy(() => import('../pages/AdminOrdersPage'));
 const AdminInventoryPage = lazy(() => import('../pages/AdminInventoryPage'));
 const AdminUsersPage     = lazy(() => import('../pages/AdminUsersPage'));
 const AdminProductsPage  = lazy(() => import('../pages/AdminProductsPage'));
+const AdminProductFormPage = lazy(() => import('../pages/AdminProductFormPage'));
 const AdminCategoriesPage = lazy(() => import('../pages/AdminCategoriesPage'));
-const AdminPromotionsPage = lazy(() => import('../pages/AdminPromotionsPage'));
-const AdminAuditPage     = lazy(() => import('../pages/AdminAuditPage'));
+const AdminPromotionsPage           = lazy(() => import('../pages/AdminPromotionsPage'));
+const AdminAutomaticPromotionsPage  = lazy(() => import('../pages/AdminAutomaticPromotionsPage'));
+const AdminAuditPage                = lazy(() => import('../pages/AdminAuditPage'));
+const AdminBannersPage              = lazy(() => import('../pages/AdminBannersPage'));
 
 const PageLoader = () => (
   <div className="d-flex justify-content-center align-items-center py-5">
@@ -57,9 +60,13 @@ export function AppRouter() {
             <Route path="inventario"  element={<AdminInventoryPage />} />
             <Route path="usuarios"    element={<AdminUsersPage />} />
             <Route path="productos"   element={<AdminProductsPage />} />
+            <Route path="productos/nuevo"        element={<AdminProductFormPage />} />
+            <Route path="productos/:id/editar"   element={<AdminProductFormPage />} />
             <Route path="categorias"  element={<AdminCategoriesPage />} />
-            <Route path="promociones" element={<AdminPromotionsPage />} />
-            <Route path="auditoria"   element={<AdminAuditPage />} />
+            <Route path="banners"              element={<AdminBannersPage />} />
+            <Route path="promociones"           element={<AdminPromotionsPage />} />
+            <Route path="promociones-automaticas" element={<AdminAutomaticPromotionsPage />} />
+            <Route path="auditoria"             element={<AdminAuditPage />} />
           </Route>
         </Routes>
       </Suspense>

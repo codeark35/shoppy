@@ -30,7 +30,7 @@ export function SearchBar({ onSelect, placeholder = 'Buscar productos...' }: Pro
   };
 
   const handleSelect = (slug: string) => {
-    navigate(`/products/${slug}`);
+    navigate(`/productos/${slug}`);
     setShowSuggestions(false);
     setQuery('');
     onSelect?.();

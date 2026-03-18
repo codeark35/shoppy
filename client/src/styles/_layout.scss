@@ -370,3 +370,176 @@
     padding-bottom: calc(64px + env(safe-area-inset-bottom));
   }
 }
+
+// ── App Footer ────────────────────────────────────────────────────────────────
+.app-footer {
+  // Fondo base sólido como respaldo para todos los hijos
+  background: #0A2540;
+
+  // Cuerpo principal oscuro — coherente con topbar
+  &__body {
+    background: linear-gradient(160deg, #0A2540 0%, #1A5F9E 100%);
+    padding: 56px 0 40px;
+  }
+
+  // Grid de 4 columnas
+  &__grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.4fr;
+    gap: 40px;
+
+    @media (min-width: 1600px) {
+      gap: 60px;
+    }
+  }
+
+  // Columna de marca
+  &__logo {
+    font-family: $font-display;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff !important;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+    transition: opacity var(--transition-fast);
+
+    &:hover { opacity: 0.85; }
+  }
+
+  &__tagline {
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 0.83rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    max-width: 280px;
+  }
+
+  // Redes sociales
+  &__social {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__social-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: none !important;
+    transition: background var(--transition-fast), color var(--transition-fast),
+                transform var(--transition-fast);
+
+    &:hover {
+      background: $color-accent;
+      border-color: $color-accent;
+      color: #fff;
+      transform: translateY(-2px);
+    }
+  }
+
+  // Título de columna
+  &__col-title {
+    font-family: $font-display;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+  }
+
+  // Lista de links
+  &__links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    a {
+      color: rgba(255, 255, 255, 0.72);
+      text-decoration: none !important;
+      font-size: 0.875rem;
+      font-weight: 400;
+      transition: color var(--transition-fast), padding-left var(--transition-fast);
+
+      &:hover {
+        color: #fff;
+        padding-left: 4px;
+      }
+    }
+  }
+
+  // Contacto con íconos
+  &__contact {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.875rem;
+      line-height: 1.4;
+
+      svg {
+        flex-shrink: 0;
+        margin-top: 2px;
+        color: $color-accent;
+      }
+    }
+  }
+
+  // Barra de copyright
+  &__bar {
+    background: #071929;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 14px 0;
+  }
+
+  &__bar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  // Chips de métodos de pago
+  &__payments {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  &__payment-chip {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    padding: 3px 9px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: 0.02em;
+  }
+}

@@ -1,5 +1,6 @@
 import { AppNavbar } from '../shared/components/AppNavbar';
 import { BottomNav } from '../shared/components/BottomNav';
+import { AppFooter } from '../shared/components/AppFooter';
 import { OrderDetail } from '../features/orders/components/OrderDetail';
 import { useAuthStore } from '../features/auth/store/authStore';
 import { useEffect } from 'react';
@@ -19,6 +20,7 @@ export function OrderDetailPage() {
     <>
       <AppNavbar />
       <OrderDetail />
+      <AppFooter />
       <BottomNav />
     </>
   );

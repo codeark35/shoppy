@@ -101,14 +101,31 @@ export class AdminService {
 
   // ─── Inventario ───────────────────────────────────────────────────────────────
 
-  async getInventory(lowStockOnly = false) {
-    return this.prisma.productVariant.findMany({
-      where: lowStockOnly ? { stock: { lte: 5 } } : {},
-      include: {
-        product: { select: { id: true, name: true, slug: true, images: { take: 1 } } },
-      },
-      orderBy: { stock: 'asc' },
-    });
+  async getInventory(lowStockOnly = false, page = 1, limit = 20) {
+    const where = lowStockOnly ? { stock: { lte: 5 } } : {};
+    const skip = (page - 1) * limit;
+
+    const [items, total, lowStockCount] = await Promise.all([
+      this.prisma.productVariant.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          product: { select: { id: true, name: true, slug: true, images: { take: 1 } } },
+        },
+        orderBy: { stock: 'asc' },
+      }),
+      this.prisma.productVariant.count({ where }),
+      this.prisma.productVariant.count({ where: { stock: { lte: 5 } } }),
+    ]);
+
+    return {
+      items,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      lowStockCount,
+    };
   }
 
   async updateStock(variantId: string, stock: number) {

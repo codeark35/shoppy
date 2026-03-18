@@ -19,11 +19,25 @@ export function ProductCard({ product }: ProductCardProps) {
   const inWishlist = isInWishlist(product.id);
 
   const basePrice = Number(product.basePrice);
-  const currentPrice = firstVariant ? Number(firstVariant.price) : basePrice;
-  const discountPct =
-    basePrice > 0 && currentPrice < basePrice
-      ? Math.round(((basePrice - currentPrice) / basePrice) * 100)
-      : 0;
+  const variantPrice = firstVariant ? Number(firstVariant.price) : basePrice;
+
+  // Precio con promoción automática tiene prioridad sobre diferencia variante/base
+  const promo = product.activePromotion;
+  const promoPrice = promo
+    ? promo.discountType === 'PERCENTAGE'
+      ? Math.max(0, variantPrice * (1 - promo.discountValue / 100))
+      : Math.max(0, variantPrice - promo.discountValue)
+    : null;
+
+  const currentPrice = promoPrice ?? variantPrice;
+  const originalPrice = promoPrice !== null ? variantPrice : basePrice;
+  const discountPct = promo
+    ? promo.discountType === 'PERCENTAGE'
+      ? promo.discountValue
+      : Math.round(((variantPrice - currentPrice) / variantPrice) * 100)
+    : basePrice > 0 && variantPrice < basePrice
+    ? Math.round(((basePrice - variantPrice) / basePrice) * 100)
+    : 0;
 
   const handleAddToCart = () => {
     if (firstVariant) {
@@ -58,8 +72,14 @@ export function ProductCard({ product }: ProductCardProps) {
             decoding="async"
           />
 
-          {discountPct > 0 && (
-            <span className="product-card__discount-badge">-{discountPct}%</span>
+          {promo ? (
+            // Badge combinado: Oferta + porcentaje
+            <span className="product-card__promo-badge" title={promo.name}>
+              Oferta{discountPct > 0 ? ` −${discountPct}%` : ''}
+            </span>
+          ) : discountPct > 0 && (
+            // Badge solo % (descuento por precio de variante)
+            <span className="product-card__discount-badge">−{discountPct}%</span>
           )}
 
           {/* Wishlist — dentro del image-wrapper para el posicionamiento, con stopPropagation */}
@@ -79,8 +99,8 @@ export function ProductCard({ product }: ProductCardProps) {
           <h3 className="product-card__name">{product.name}</h3>
           <div className="product-card__pricing">
             <span className="product-card__price">{formatPrice(currentPrice)}</span>
-            {discountPct > 0 && (
-              <span className="product-card__price-original">{formatPrice(basePrice)}</span>
+            {(discountPct > 0 || promo) && currentPrice < originalPrice && (
+              <span className="product-card__price-original">{formatPrice(originalPrice)}</span>
             )}
           </div>
         </div>

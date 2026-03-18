@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Badge, Button, Form, Modal, Alert, Spinner } from 'react-bootstrap';
-import { Plus, Edit2, Trash2, RefreshCw, ChevronRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, RefreshCw, ChevronRight, Star, Upload, X } from 'lucide-react';
 import {
   useAdminCategories,
   useCreateCategory,
   useUpdateCategory,
   useDeleteCategory,
 } from '../features/admin';
+import { adminService } from '../features/admin/services/admin.service';
 import type { AdminCategory, CreateCategoryPayload } from '../features/admin';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -29,14 +30,37 @@ interface CategoryModalProps {
 }
 
 function CategoryModal({ category, allCategories, onHide }: CategoryModalProps) {
-  const isEdit = !!category;
+  // isEdit solo es true si category tiene un id real (no el dummy de preselectedParent)
+  const isEdit = !!(category?.id);
   const createMut = useCreateCategory();
   const updateMut = useUpdateCategory();
 
   const [name, setName] = useState(category?.name ?? '');
   const [slug, setSlug] = useState(category?.slug ?? '');
   const [parentId, setParentId] = useState<string>(category?.parentId ?? '');
+  const [imageUrl, setImageUrl] = useState(category?.imageUrl ?? '');
+  const [isFeatured, setIsFeatured] = useState(category?.isFeatured ?? false);
+  const [featuredPosition, setFeaturedPosition] = useState(category?.featuredPosition ?? 0);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setUploadError('');
+    setUploading(true);
+    try {
+      const { url } = await adminService.uploadMedia(file);
+      setImageUrl(url);
+    } catch {
+      setUploadError('Error al subir la imagen.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleNameChange = (val: string) => {
     setName(val);
@@ -50,6 +74,9 @@ function CategoryModal({ category, allCategories, onHide }: CategoryModalProps) 
       name,
       slug,
       parentId: parentId || undefined,
+      imageUrl: imageUrl || undefined,
+      isFeatured,
+      featuredPosition,
     };
     try {
       if (isEdit) {
@@ -65,7 +92,7 @@ function CategoryModal({ category, allCategories, onHide }: CategoryModalProps) 
 
   // Excluir la propia categoría y sus posibles hijos del selector de padre
   const availableParents = allCategories.filter((c) => c.id !== category?.id);
-  const isPending = createMut.isPending || updateMut.isPending;
+  const isPending = createMut.isPending || updateMut.isPending || uploading;
 
   return (
     <Modal show onHide={onHide} centered>
@@ -101,7 +128,7 @@ function CategoryModal({ category, allCategories, onHide }: CategoryModalProps) 
             />
           </Form.Group>
 
-          <Form.Group>
+          <Form.Group className="mb-3">
             <Form.Label className="small fw-medium">Categoría padre (opcional)</Form.Label>
             <Form.Select size="sm" value={parentId} onChange={(e) => setParentId(e.target.value)}>
               <option value="">— Ninguna (categoría raíz) —</option>
@@ -110,6 +137,57 @@ function CategoryModal({ category, allCategories, onHide }: CategoryModalProps) 
               ))}
             </Form.Select>
           </Form.Group>
+
+          {/* Imagen */}
+          <Form.Group className="mb-3">
+            <Form.Label className="small fw-medium">Imagen de la categoría</Form.Label>
+            <div
+              className="border rounded d-flex align-items-center justify-content-center position-relative overflow-hidden"
+              style={{ height: 120, background: '#f8f9fa', cursor: 'pointer' }}
+              onClick={() => !uploading && fileInputRef.current?.click()}
+            >
+              {imageUrl ? (
+                <>
+                  <img src={imageUrl} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <button type="button" className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" style={{ zIndex: 2 }} onClick={(e) => { e.stopPropagation(); setImageUrl(''); }}>
+                    <X size={12} />
+                  </button>
+                </>
+              ) : (
+                <div className="text-center text-muted" style={{ fontSize: '0.78rem' }}>
+                  {uploading ? <><Spinner size="sm" className="me-1" />Subiendo...</> : <><Upload size={16} className="d-block mx-auto mb-1" />Subir imagen</>}
+                </div>
+              )}
+            </div>
+            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="d-none" onChange={handleFileSelect} />
+            {uploadError && <div className="text-danger" style={{ fontSize: '0.75rem' }}>{uploadError}</div>}
+            <Form.Control size="sm" className="mt-2" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="o pegar URL de imagen" />
+          </Form.Group>
+
+          {/* Destacada */}
+          <Form.Group className="mb-2">
+            <Form.Check
+              type="switch"
+              id="cat-featured"
+              label={<span className="small fw-medium">Mostrar como sección destacada en inicio</span>}
+              checked={isFeatured}
+              onChange={(e) => setIsFeatured(e.target.checked)}
+            />
+          </Form.Group>
+
+          {isFeatured && (
+            <Form.Group>
+              <Form.Label className="small fw-medium">Posición (orden)</Form.Label>
+              <Form.Control
+                size="sm"
+                type="number"
+                min={0}
+                value={featuredPosition}
+                onChange={(e) => setFeaturedPosition(Number(e.target.value))}
+                style={{ width: 90 }}
+              />
+            </Form.Group>
+          )}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="outline-secondary" size="sm" type="button" onClick={onHide}>Cancelar</Button>
@@ -197,6 +275,11 @@ function CategoryRow({ category, allCategories, depth = 0, onEdit, onDelete, onA
         </td>
         <td>
           <Badge bg="light" text="secondary" className="fw-normal">{children.length} sub</Badge>
+          {category.isFeatured && (
+            <Badge bg="warning" text="dark" className="fw-normal ms-1">
+              <Star size={10} className="me-1" />Destacada
+            </Badge>
+          )}
         </td>
         <td className="pe-3 text-end">
           <div className="d-flex gap-1 justify-content-end">
@@ -252,10 +335,11 @@ export default function AdminCategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<AdminCategory | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [deletingCategory, setDeletingCategory] = useState<AdminCategory | null>(null);
-  // Para pre-llenar parentId al hacer "Agregar Sub"
   const [preselectedParent, setPreselectedParent] = useState<AdminCategory | null>(null);
 
   const rootCategories = categories.filter((c) => !c.parentId);
+  // Lista plana: raíces + sus hijos, para que CategoryRow y CategoryModal puedan buscar por parentId
+  const flatCategories = categories.flatMap((cat) => [cat, ...(cat.children ?? [])]);
 
   const handleAddChild = (parent: AdminCategory) => {
     setPreselectedParent(parent);
@@ -311,7 +395,7 @@ export default function AdminCategoriesPage() {
                 <CategoryRow
                   key={cat.id}
                   category={cat}
-                  allCategories={categories}
+                  allCategories={flatCategories}
                   onEdit={setEditingCategory}
                   onDelete={setDeletingCategory}
                   onAddChild={handleAddChild}
@@ -324,7 +408,7 @@ export default function AdminCategoriesPage() {
           </table>
         </div>
         <div className="card-footer bg-transparent border-top px-3 py-2">
-          <span className="small text-muted">{categories.length} categorías en total</span>
+          <span className="small text-muted">{flatCategories.length} categorías en total</span>
         </div>
       </div>
 
@@ -332,14 +416,14 @@ export default function AdminCategoriesPage() {
       {showCreate && (
         <CategoryModal
           category={createModalDummy}
-          allCategories={categories}
+          allCategories={flatCategories}
           onHide={handleCloseCreate}
         />
       )}
       {editingCategory && (
         <CategoryModal
           category={editingCategory}
-          allCategories={categories}
+          allCategories={flatCategories}
           onHide={() => setEditingCategory(null)}
         />
       )}

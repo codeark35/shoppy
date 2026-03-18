@@ -43,6 +43,11 @@ enum DiscountType {
   FIXED
 }
 
+enum PromotionScope {
+  PRODUCT
+  CATEGORY
+}
+
 // ─── USERS ────────────────────────────────────────────────────────────────────
 
 model User {
@@ -77,13 +82,17 @@ model Address {
 // ─── CATALOG ──────────────────────────────────────────────────────────────────
 
 model Category {
-  id        String     @id @default(cuid())
-  name      String
-  slug      String     @unique
-  parentId  String?
+  id               String     @id @default(cuid())
+  name             String
+  slug             String     @unique
+  imageUrl         String?
+  parentId         String?
+  isFeatured       Boolean    @default(false)
+  featuredPosition Int        @default(0)
   parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
   children  Category[] @relation("CategoryTree")
   products  Product[]
+  promotions PromotionCategory[]
   createdAt DateTime   @default(now())
 }
 
@@ -98,8 +107,10 @@ model Product {
   category    Category         @relation(fields: [categoryId], references: [id])
   categoryId  String
   isActive    Boolean          @default(true)
+  isFeatured  Boolean          @default(false)
   wishlist    Wishlist[]
   reviews     Review[]
+  promotions  PromotionProduct[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 }
@@ -147,15 +158,17 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
-  order     Order   @relation(fields: [orderId], references: [id])
-  orderId   String
-  variantId String
-  sku       String
-  name      String  // snapshot del nombre al momento de compra
-  imageUrl  String?
-  price     Decimal @db.Decimal(10, 2) // snapshot del precio
-  quantity  Int
+  id                  String   @id @default(cuid())
+  order               Order    @relation(fields: [orderId], references: [id])
+  orderId             String
+  variantId           String
+  sku                 String
+  name                String   // snapshot del nombre al momento de compra
+  imageUrl            String?
+  price               Decimal  @db.Decimal(10, 2) // snapshot del precio unitario original
+  quantity            Int
+  unitDiscountApplied Decimal? @db.Decimal(10, 2) // descuento por unidad aplicado (promo/cupón)
+  unitPriceFinal      Decimal? @db.Decimal(10, 2) // precio final por unidad tras descuento
 }
 
 model OrderShipping {
@@ -234,6 +247,45 @@ model Coupon {
   createdAt         DateTime     @default(now())
 }
 
+model Promotion {
+  id                String              @id @default(cuid())
+  name              String
+  description       String?
+  scope             PromotionScope
+  discountType      DiscountType
+  discountValue     Decimal             @db.Decimal(10, 2)
+  minPurchaseAmount Decimal?            @db.Decimal(10, 2)
+  priority          Int                 @default(0)
+  combinable        Boolean             @default(false)
+  validFrom         DateTime            @default(now())
+  validUntil        DateTime?
+  isActive          Boolean             @default(true)
+  products          PromotionProduct[]
+  categories        PromotionCategory[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+model PromotionProduct {
+  id          String    @id @default(cuid())
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  promotionId String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId   String
+
+  @@unique([promotionId, productId])
+}
+
+model PromotionCategory {
+  id          String    @id @default(cuid())
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  promotionId String
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId  String
+
+  @@unique([promotionId, categoryId])
+}
+
 // ─── FASE 2: REVIEWS ───────────────────────────────────────────────────────────
 
 model Review {
@@ -274,5 +326,28 @@ model PushSubscription {
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
+}
+
+// ─── BANNERS ──────────────────────────────────────────────────────────────────
+
+enum BannerType {
+  HERO
+  PROMO
+}
+
+model Banner {
+  id         String     @id @default(cuid())
+  title      String
+  subtitle   String?
+  imageUrl   String
+  buttonText String?
+  buttonLink String?
+  type       BannerType @default(HERO)
+  isActive   Boolean    @default(true)
+  position   Int        @default(0)
+  validFrom  DateTime?
+  validUntil DateTime?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 }
 
