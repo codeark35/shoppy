@@ -19,6 +19,13 @@ export function HomePage() {
 
         <section className="py-5">
           <Container fluid="xl">
+            <SectionTitle title="Productos en ofertas" linkText="Ver todos" linkTo="/productos" />
+            <ProductSwiper filters={{ onSale: true }} limit={20} autoplay />
+          </Container>
+        </section>
+
+        <section className="py-5">
+          <Container fluid="xl">
             <SectionTitle title="Productos Destacados" linkText="Ver todos" linkTo="/productos" />
             <ProductSwiper filters={{ featured: true }} limit={10} autoplay />
           </Container>
@@ -26,12 +33,6 @@ export function HomePage() {
 
         <HeroBannerSlider type="PROMO" />
 
-        <section className="py-5">
-          <Container fluid="xl">
-            <SectionTitle title="Productos en ofertas" linkText="Ver todos" linkTo="/productos" />
-            <ProductSwiper filters={{ onSale: true }} limit={20} autoplay />
-          </Container>
-        </section>
 
 
         {/* <section className="py-5 bg-light">
@@ -44,6 +45,13 @@ export function HomePage() {
         <FeaturedCategorySpotlight />
 
         <HeroBannerSlider type="PROMO_STRIP" />
+
+        <section className="py-5">
+          <Container fluid="xl">
+            <SectionTitle title="Ingresos Recientes" linkText="Ver todos" linkTo="/productos" />
+            <ProductSwiper filters={{ sortBy: 'newest' }} limit={20} autoplay />
+          </Container>
+        </section>
 
         <HeroBannerSlider type="PROMO_FOOTER" />
       </main>

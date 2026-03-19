@@ -671,9 +671,9 @@
     cursor: pointer;
     padding: 4px 2px 0;
     transition: transform 0.15s;
-    width: 110px;
+    width: 140px;
 
-    @media (max-width: 575px) { width: 88px; }
+    @media (max-width: 575px) { width: 108px; }
 
     &:hover {
       transform: translateY(-3px);
@@ -690,9 +690,9 @@
   }
 
   &__img-wrap {
-    width: 96px;
-    height: 96px;
-    border-radius: 16px;
+    width: 124px;
+    height: 124px;
+    border-radius: 20px;
     background: #f5f7fa;
     overflow: hidden;
     display: flex;
@@ -703,9 +703,9 @@
     flex-shrink: 0;
 
     @media (max-width: 575px) {
-      width: 76px;
-      height: 76px;
-      border-radius: 12px;
+      width: 96px;
+      height: 96px;
+      border-radius: 14px;
     }
 
     img {

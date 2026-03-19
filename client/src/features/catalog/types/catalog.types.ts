@@ -53,4 +53,5 @@ export interface ProductFilters {
   limit?: number;
   featured?: boolean;
   onSale?: boolean;
+  sortBy?: 'newest' | 'price_asc' | 'price_desc' | 'featured';
 }

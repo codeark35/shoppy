@@ -51,11 +51,11 @@ export function PopularCategoriesSection({ limit = 10 }: { limit?: number }) {
           pagination={{ clickable: true, dynamicBullets: true }}
           className="popular-cats__swiper"
           breakpoints={{
-            0:   { slidesPerView: 3, spaceBetween: 10 },
-            576: { slidesPerView: 4, spaceBetween: 12 },
-            768: { slidesPerView: 5, spaceBetween: 14 },
-            992: { slidesPerView: 7, spaceBetween: 16 },
-            1200:{ slidesPerView: 8, spaceBetween: 16 },
+            0:   { slidesPerView: 3, spaceBetween: 6 },
+            576: { slidesPerView: 4, spaceBetween: 8 },
+            768: { slidesPerView: 5, spaceBetween: 10 },
+            992: { slidesPerView: 7, spaceBetween: 10 },
+            1200:{ slidesPerView: 8, spaceBetween: 10 },
           }}
         >
           {isLoading

@@ -92,10 +92,23 @@ export class CatalogService {
     }
 
     if (categoryId) {
-      where.categoryId = categoryId;
+      // Incluir productos de subcategorías también
+      const children = await this.prisma.category.findMany({
+        where: { parentId: categoryId },
+        select: { id: true },
+      });
+      const ids = [categoryId, ...children.map((c) => c.id)];
+      where.categoryId = { in: ids };
     } else if (categorySlug) {
       const cat = await this.prisma.category.findUnique({ where: { slug: categorySlug } });
-      if (cat) where.categoryId = cat.id;
+      if (cat) {
+        const children = await this.prisma.category.findMany({
+          where: { parentId: cat.id },
+          select: { id: true },
+        });
+        const ids = [cat.id, ...children.map((c) => c.id)];
+        where.categoryId = { in: ids };
+      }
     }
 
     if (minPrice || maxPrice) {
@@ -142,7 +155,11 @@ export class CatalogService {
           images: { orderBy: { position: 'asc' } },
           variants: { select: { id: true, sku: true, price: true, stock: true, attributes: true } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: query.sortBy === 'price_asc'
+          ? { basePrice: 'asc' }
+          : query.sortBy === 'price_desc'
+            ? { basePrice: 'desc' }
+            : { createdAt: 'desc' },
       }),
       this.prisma.product.count({ where }),
     ]);

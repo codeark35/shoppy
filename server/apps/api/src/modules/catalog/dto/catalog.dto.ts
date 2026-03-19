@@ -1,6 +1,6 @@
 import {
   IsString, IsOptional, IsNumber, IsBoolean,
-  IsArray, ValidateNested, IsPositive, Min,
+  IsArray, ValidateNested, IsPositive, Min, IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -211,4 +211,8 @@ export class ProductQueryDto {
   @IsBoolean()
   @Type(() => Boolean)
   onSale?: boolean;
+
+  @IsOptional()
+  @IsIn(['newest', 'price_asc', 'price_desc', 'featured'])
+  sortBy?: 'newest' | 'price_asc' | 'price_desc' | 'featured';
 }
