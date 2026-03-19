@@ -29,7 +29,7 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
-  await app.register(multipart, { limits: { fileSize: 5 * 1024 * 1024 } });
+  await app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } }); // 10 MB
 
   await app.register(fastifyCookie, {
     secret: process.env.JWT_REFRESH_SECRET || 'cookie-secret-change-me',

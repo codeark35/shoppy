@@ -17,6 +17,7 @@ import type {
   UpdateBannerPayload,
 } from '../types/admin.types';
 import type { OrderStatus } from '../../orders/types/orders.types';
+import type { AnalyticsQuery } from '../../analytics/types/analytics.types';
 
 // ── Órdenes ───────────────────────────────────────────────────────────────────
 
@@ -311,3 +312,54 @@ export const useDeleteBanner = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'banners'] }),
   });
 };
+
+// ── Analítica ────────────────────────────────────────────────────────────────
+
+export const useAnalyticsSummary = (params?: AnalyticsQuery) =>
+  useQuery({
+    queryKey: ['admin', 'analytics', 'summary', params],
+    queryFn: () => adminService.getAnalyticsSummary(params),
+    staleTime: 2 * 60 * 1000,
+  });
+
+export const useAnalyticsVisits = (params?: AnalyticsQuery) =>
+  useQuery({
+    queryKey: ['admin', 'analytics', 'visits', params],
+    queryFn: () => adminService.getAnalyticsVisits(params),
+    staleTime: 2 * 60 * 1000,
+  });
+
+export const useAnalyticsRevenue = (params?: AnalyticsQuery) =>
+  useQuery({
+    queryKey: ['admin', 'analytics', 'revenue', params],
+    queryFn: () => adminService.getAnalyticsRevenue(params),
+    staleTime: 2 * 60 * 1000,
+  });
+
+export const useAnalyticsTopProducts = (params?: AnalyticsQuery) =>
+  useQuery({
+    queryKey: ['admin', 'analytics', 'top-products', params],
+    queryFn: () => adminService.getAnalyticsTopProducts(params),
+    staleTime: 2 * 60 * 1000,
+  });
+
+export const useAnalyticsTopCategories = (params?: AnalyticsQuery) =>
+  useQuery({
+    queryKey: ['admin', 'analytics', 'top-categories', params],
+    queryFn: () => adminService.getAnalyticsTopCategories(params),
+    staleTime: 2 * 60 * 1000,
+  });
+
+export const useAnalyticsSearches = (params?: AnalyticsQuery) =>
+  useQuery({
+    queryKey: ['admin', 'analytics', 'searches', params],
+    queryFn: () => adminService.getAnalyticsSearches(params),
+    staleTime: 2 * 60 * 1000,
+  });
+
+export const useAnalyticsFunnel = (params?: AnalyticsQuery) =>
+  useQuery({
+    queryKey: ['admin', 'analytics', 'funnel', params],
+    queryFn: () => adminService.getAnalyticsFunnel(params),
+    staleTime: 2 * 60 * 1000,
+  });

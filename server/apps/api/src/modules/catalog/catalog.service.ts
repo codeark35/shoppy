@@ -268,15 +268,26 @@ export class CatalogService {
     return result;
   }
 
+  private async generateUniqueSlug(baseSlug: string, excludeId?: string): Promise<string> {
+    let slug = baseSlug;
+    let counter = 1;
+    while (true) {
+      const found = await this.prisma.product.findUnique({ where: { slug } });
+      if (!found || found.id === excludeId) return slug;
+      counter++;
+      slug = `${baseSlug}-${counter}`;
+    }
+  }
+
   async createProduct(dto: CreateProductDto) {
-    const existing = await this.prisma.product.findUnique({ where: { slug: dto.slug } });
-    if (existing) throw new ConflictException('Ya existe un producto con ese slug');
+    const uniqueSlug = await this.generateUniqueSlug(dto.slug);
 
     const { variants, ...productData } = dto;
 
     const product = await this.prisma.product.create({
       data: {
         ...productData,
+        slug: uniqueSlug,
         basePrice: productData.basePrice,
         variants: variants?.length
           ? { create: variants }

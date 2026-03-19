@@ -1,15 +1,25 @@
 import { useSearchParams, Link } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
 import { Container, Card, Spinner, Alert } from 'react-bootstrap';
 import { CheckCircle, XCircle, Clock } from 'lucide-react';
 import { AppNavbar } from '../shared/components/AppNavbar';
 import { BottomNav } from '../shared/components/BottomNav';
 import { AppFooter } from '../shared/components/AppFooter';
 import { useOrderDetail } from '../features/orders/hooks/useOrders';
+import { analyticsTracker } from '../features/analytics/services/analytics.tracker';
 
 export function CheckoutResultPage() {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('order');
   const { data: order, isLoading } = useOrderDetail(orderId ?? '');
+  const trackedRef = useRef(false);
+
+  useEffect(() => {
+    if (!trackedRef.current && order && (order.status === 'PAID' || order.status === 'PAYMENT_PROCESSING')) {
+      trackedRef.current = true;
+      analyticsTracker.trackPurchase(order.total);
+    }
+  }, [order?.status]);
 
   const renderContent = () => {
     if (!orderId) {

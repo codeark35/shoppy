@@ -39,12 +39,16 @@ function CategoryModal({ category, allCategories, onHide }: CategoryModalProps) 
   const [slug, setSlug] = useState(category?.slug ?? '');
   const [parentId, setParentId] = useState<string>(category?.parentId ?? '');
   const [imageUrl, setImageUrl] = useState(category?.imageUrl ?? '');
+  const [coverImageUrl, setCoverImageUrl] = useState(category?.coverImageUrl ?? '');
   const [isFeatured, setIsFeatured] = useState(category?.isFeatured ?? false);
   const [featuredPosition, setFeaturedPosition] = useState(category?.featuredPosition ?? 0);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadCoverError, setUploadCoverError] = useState('');
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -62,6 +66,22 @@ function CategoryModal({ category, allCategories, onHide }: CategoryModalProps) 
     }
   };
 
+  const handleCoverSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setUploadCoverError('');
+    setUploadingCover(true);
+    try {
+      const { url } = await adminService.uploadMedia(file);
+      setCoverImageUrl(url);
+    } catch {
+      setUploadCoverError('Error al subir la portada.');
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
   const handleNameChange = (val: string) => {
     setName(val);
     if (!isEdit) setSlug(toSlug(val));
@@ -75,6 +95,7 @@ function CategoryModal({ category, allCategories, onHide }: CategoryModalProps) 
       slug,
       parentId: parentId || undefined,
       imageUrl: imageUrl || undefined,
+      coverImageUrl: coverImageUrl || undefined,
       isFeatured,
       featuredPosition,
     };
@@ -92,7 +113,7 @@ function CategoryModal({ category, allCategories, onHide }: CategoryModalProps) 
 
   // Excluir la propia categoría y sus posibles hijos del selector de padre
   const availableParents = allCategories.filter((c) => c.id !== category?.id);
-  const isPending = createMut.isPending || updateMut.isPending || uploading;
+  const isPending = createMut.isPending || updateMut.isPending || uploading || uploadingCover;
 
   return (
     <Modal show onHide={onHide} centered>
@@ -138,9 +159,9 @@ function CategoryModal({ category, allCategories, onHide }: CategoryModalProps) 
             </Form.Select>
           </Form.Group>
 
-          {/* Imagen */}
+          {/* Imagen de perfil */}
           <Form.Group className="mb-3">
-            <Form.Label className="small fw-medium">Imagen de la categoría</Form.Label>
+            <Form.Label className="small fw-medium">Imagen de perfil <span className="text-muted fw-normal">(miniatura en "Categorías más buscadas")</span></Form.Label>
             <div
               className="border rounded d-flex align-items-center justify-content-center position-relative overflow-hidden"
               style={{ height: 120, background: '#f8f9fa', cursor: 'pointer' }}
@@ -162,6 +183,32 @@ function CategoryModal({ category, allCategories, onHide }: CategoryModalProps) 
             <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="d-none" onChange={handleFileSelect} />
             {uploadError && <div className="text-danger" style={{ fontSize: '0.75rem' }}>{uploadError}</div>}
             <Form.Control size="sm" className="mt-2" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="o pegar URL de imagen" />
+          </Form.Group>
+
+          {/* Imagen de portada */}
+          <Form.Group className="mb-3">
+            <Form.Label className="small fw-medium">Imagen de portada <span className="text-muted fw-normal">(banner en sección destacada)</span></Form.Label>
+            <div
+              className="border rounded d-flex align-items-center justify-content-center position-relative overflow-hidden"
+              style={{ height: 100, background: '#f8f9fa', cursor: 'pointer' }}
+              onClick={() => !uploadingCover && coverInputRef.current?.click()}
+            >
+              {coverImageUrl ? (
+                <>
+                  <img src={coverImageUrl} alt="cover preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <button type="button" className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" style={{ zIndex: 2 }} onClick={(e) => { e.stopPropagation(); setCoverImageUrl(''); }}>
+                    <X size={12} />
+                  </button>
+                </>
+              ) : (
+                <div className="text-center text-muted" style={{ fontSize: '0.78rem' }}>
+                  {uploadingCover ? <><Spinner size="sm" className="me-1" />Subiendo...</> : <><Upload size={16} className="d-block mx-auto mb-1" />Subir portada</>}
+                </div>
+              )}
+            </div>
+            <input ref={coverInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="d-none" onChange={handleCoverSelect} />
+            {uploadCoverError && <div className="text-danger" style={{ fontSize: '0.75rem' }}>{uploadCoverError}</div>}
+            <Form.Control size="sm" className="mt-2" value={coverImageUrl} onChange={(e) => setCoverImageUrl(e.target.value)} placeholder="o pegar URL de portada" />
           </Form.Group>
 
           {/* Destacada */}

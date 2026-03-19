@@ -1,6 +1,7 @@
 import api from '../../../shared/lib/api';
 import type { Product, Category, ProductFilters } from '../types/catalog.types';
 import type { PaginatedResult } from '../../../shared/types';
+import type { AnalyticsTopCategory } from '../../analytics/types/analytics.types';
 
 export const catalogService = {
   async getProducts(filters: ProductFilters = {}): Promise<PaginatedResult<Product>> {
@@ -22,6 +23,13 @@ export const catalogService = {
 
   async getFeaturedCategories(): Promise<Category[]> {
     const { data } = await api.get<Category[]>('/catalog/categories/featured');
+    return data;
+  },
+
+  async getPopularCategories(limit = 8): Promise<AnalyticsTopCategory[]> {
+    const { data } = await api.get<AnalyticsTopCategory[]>('/analytics/popular-categories', {
+      params: { limit },
+    });
     return data;
   },
 };

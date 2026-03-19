@@ -34,3 +34,11 @@ export function useFeaturedCategories() {
     staleTime: 1000 * 60 * 5,
   });
 }
+
+export function usePopularCategories(limit = 8) {
+  return useQuery({
+    queryKey: ['categories', 'popular', limit],
+    queryFn: () => catalogService.getPopularCategories(limit),
+    staleTime: 1000 * 60 * 5,
+  });
+}

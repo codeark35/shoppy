@@ -146,7 +146,9 @@ function BannerModal({ show, onHide, editing }: BannerModalProps) {
             <Form.Label className="small fw-semibold">Tipo</Form.Label>
             <Form.Select value={form.type} onChange={(e) => set('type', e.target.value as BannerType)}>
               <option value="HERO">Hero (principal)</option>
-              <option value="PROMO">Promo</option>
+              <option value="PROMO">Promo (media página)</option>
+              <option value="PROMO_FOOTER">Promo Footer</option>
+              <option value="PROMO_STRIP">Promo Strip (banda)</option>
             </Form.Select>
           </Col>
           <Col xs={12}>
@@ -306,8 +308,12 @@ function BannerRow({ banner, onEdit, onDelete }: BannerRowProps) {
         {banner.subtitle && <div className="text-muted" style={{ fontSize: '0.75rem' }}>{banner.subtitle}</div>}
       </td>
       <td>
-        <Badge bg={banner.type === 'HERO' ? 'primary' : 'warning'} className="text-uppercase" style={{ fontSize: '0.65rem' }}>
-          {banner.type}
+        <Badge
+          bg={banner.type === 'HERO' ? 'primary' : banner.type === 'PROMO' ? 'warning' : banner.type === 'PROMO_FOOTER' ? 'success' : 'info'}
+          className="text-uppercase"
+          style={{ fontSize: '0.65rem' }}
+        >
+          {banner.type.replace('_', ' ')}
         </Badge>
       </td>
       <td className="text-center">{banner.position}</td>
@@ -367,9 +373,11 @@ export default function AdminBannersPage() {
     setToDelete(null);
   };
 
-  const heroCnt  = banners?.filter((b) => b.type === 'HERO').length ?? 0;
-  const promoCnt = banners?.filter((b) => b.type === 'PROMO').length ?? 0;
-  const activeCnt = banners?.filter((b) => b.isActive).length ?? 0;
+  const heroCnt      = banners?.filter((b) => b.type === 'HERO').length ?? 0;
+  const promoCnt      = banners?.filter((b) => b.type === 'PROMO').length ?? 0;
+  const promoFooterCnt = banners?.filter((b) => b.type === 'PROMO_FOOTER').length ?? 0;
+  const promoStripCnt  = banners?.filter((b) => b.type === 'PROMO_STRIP').length ?? 0;
+  const activeCnt     = banners?.filter((b) => b.isActive).length ?? 0;
 
   return (
     <Container fluid className="py-4">
@@ -389,6 +397,8 @@ export default function AdminBannersPage() {
         {[
           { label: 'Hero', value: heroCnt, color: '#0F4C81' },
           { label: 'Promo', value: promoCnt, color: '#D97706' },
+          { label: 'Promo Footer', value: promoFooterCnt, color: '#16A34A' },
+          { label: 'Promo Strip', value: promoStripCnt, color: '#7C3AED' },
           { label: 'Activos', value: activeCnt, color: '#16A34A' },
           { label: 'Total', value: banners?.length ?? 0, color: '#6B7280' },
         ].map((s) => (
@@ -405,7 +415,7 @@ export default function AdminBannersPage() {
 
       {/* Filtros */}
       <div className="d-flex gap-2 mb-3 flex-wrap">
-        {(['', 'HERO', 'PROMO'] as const).map((t) => (
+        {(['', 'HERO', 'PROMO', 'PROMO_FOOTER', 'PROMO_STRIP'] as const).map((t) => (
           <Button
             key={t || 'all'}
             size="sm"

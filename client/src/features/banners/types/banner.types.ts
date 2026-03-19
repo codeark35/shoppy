@@ -1,4 +1,4 @@
-export type BannerType = 'HERO' | 'PROMO';
+export type BannerType = 'HERO' | 'PROMO' | 'PROMO_FOOTER' | 'PROMO_STRIP';
 
 export interface Banner {
   id: string;

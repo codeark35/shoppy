@@ -8,6 +8,7 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  PayloadTooLargeException,
   Req,
 } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
@@ -28,7 +29,15 @@ export class MediaController {
    */
   @Post('upload')
   async uploadImage(@Req() req: FastifyRequest) {
-    const data = await (req as any).file();
+    let data: any;
+    try {
+      data = await (req as any).file();
+    } catch (err: any) {
+      if (err?.code === 'FST_FILES_LIMIT' || err?.statusCode === 413 || err?.message?.includes('too large')) {
+        throw new PayloadTooLargeException('El archivo supera el límite de 10 MB');
+      }
+      throw err;
+    }
     if (!data) throw new BadRequestException('No se recibió ningún archivo');
 
     const buffer = await data.toBuffer();

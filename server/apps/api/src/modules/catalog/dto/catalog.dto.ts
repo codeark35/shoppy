@@ -20,6 +20,10 @@ export class CreateCategoryDto {
   imageUrl?: string;
 
   @IsOptional()
+  @IsString()
+  coverImageUrl?: string;
+
+  @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   isFeatured?: boolean;
@@ -46,6 +50,10 @@ export class UpdateCategoryDto {
   @IsOptional()
   @IsString()
   imageUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  coverImageUrl?: string;
 
   @IsOptional()
   @IsBoolean()

@@ -1,6 +1,8 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Spinner } from 'react-bootstrap';
+import { useEffect } from 'react';
+import { analyticsTracker } from '../features/analytics/services/analytics.tracker';
 import { HomePage } from '../pages/HomePage';
 import { CatalogPage } from '../pages/CatalogPage';
 import { ProductPage } from '../pages/ProductPage';
@@ -26,6 +28,7 @@ const AdminPromotionsPage           = lazy(() => import('../pages/AdminPromotion
 const AdminAutomaticPromotionsPage  = lazy(() => import('../pages/AdminAutomaticPromotionsPage'));
 const AdminAuditPage                = lazy(() => import('../pages/AdminAuditPage'));
 const AdminBannersPage              = lazy(() => import('../pages/AdminBannersPage'));
+const AdminAnalyticsPage            = lazy(() => import('../pages/AdminAnalyticsPage'));
 
 const PageLoader = () => (
   <div className="d-flex justify-content-center align-items-center py-5">
@@ -33,9 +36,18 @@ const PageLoader = () => (
   </div>
 );
 
+function PageTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    analyticsTracker.trackPageView(location.pathname + location.search);
+  }, [location.pathname, location.search]);
+  return null;
+}
+
 export function AppRouter() {
   return (
     <BrowserRouter>
+      <PageTracker />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* ── Rutas públicas ── */}
@@ -64,6 +76,7 @@ export function AppRouter() {
             <Route path="productos/:id/editar"   element={<AdminProductFormPage />} />
             <Route path="categorias"  element={<AdminCategoriesPage />} />
             <Route path="banners"              element={<AdminBannersPage />} />
+            <Route path="analitica"            element={<AdminAnalyticsPage />} />
             <Route path="promociones"           element={<AdminPromotionsPage />} />
             <Route path="promociones-automaticas" element={<AdminAutomaticPromotionsPage />} />
             <Route path="auditoria"             element={<AdminAuditPage />} />

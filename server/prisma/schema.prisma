@@ -86,6 +86,7 @@ model Category {
   name             String
   slug             String     @unique
   imageUrl         String?
+  coverImageUrl    String?
   parentId         String?
   isFeatured       Boolean    @default(false)
   featuredPosition Int        @default(0)
@@ -333,6 +334,8 @@ model PushSubscription {
 enum BannerType {
   HERO
   PROMO
+  PROMO_FOOTER
+  PROMO_STRIP
 }
 
 model Banner {
@@ -351,3 +354,40 @@ model Banner {
   updatedAt  DateTime   @updatedAt
 }
 
+// ─── ANALYTICS ───────────────────────────────────────────────────────────────
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  PRODUCT_VIEW
+  CATEGORY_VIEW
+  SEARCH
+  ADD_TO_CART
+  REMOVE_FROM_CART
+  CHECKOUT_START
+  PURCHASE
+  BANNER_CLICK
+}
+
+model AnalyticsEvent {
+  id          String             @id @default(cuid())
+  type        AnalyticsEventType
+  sessionId   String?
+  userId      String?
+  productId   String?
+  categoryId  String?
+  bannerId    String?
+  searchQuery String?
+  page        String?
+  referrer    String?
+  value       Float?
+  metadata    Json?
+  createdAt   DateTime           @default(now())
+
+  @@index([type])
+  @@index([createdAt])
+  @@index([sessionId])
+  @@index([userId])
+  @@index([productId])
+  @@index([categoryId])
+  @@index([type, createdAt])
+}

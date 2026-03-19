@@ -564,7 +564,7 @@
     text-decoration: none !important;
     position: relative;
     min-height: 280px;   // altura mínima para no quedar vacía
-    height: 100%;        // llena el alto del grid row
+    height: 92.5%;        // llena el alto del grid row
     box-shadow: var(--shadow-sm);
     transition: box-shadow var(--transition-base), transform var(--transition-base);
 
@@ -628,4 +628,121 @@
   &__swiper {
     min-width: 0; // evita overflow en grid
   }
+}
+
+// ── Popular Categories Section ────────────────────────────────────────────────
+
+.popular-cats {
+  padding: 32px 0 20px;
+  background: #fff;
+
+  &__swiper {
+    padding-bottom: 36px !important;
+
+    .swiper-button-prev,
+    .swiper-button-next {
+      width: 34px;
+      height: 34px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      top: 38%;
+
+      &::after {
+        font-size: 13px;
+        font-weight: 900;
+        color: $color-primary;
+      }
+    }
+
+    .swiper-pagination-bullet-active { background: $color-primary; }
+  }
+
+  &__slide {
+    width: auto;
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    cursor: pointer;
+    padding: 4px 2px 0;
+    transition: transform 0.15s;
+    width: 110px;
+
+    @media (max-width: 575px) { width: 88px; }
+
+    &:hover {
+      transform: translateY(-3px);
+
+      .popular-cats__img-wrap {
+        box-shadow: 0 6px 20px rgba(0,0,0,0.13);
+      }
+    }
+
+    &--skeleton .popular-cats__img-wrap {
+      background: #f0f0f0;
+      animation: shimmer 1.4s infinite;
+    }
+  }
+
+  &__img-wrap {
+    width: 96px;
+    height: 96px;
+    border-radius: 16px;
+    background: #f5f7fa;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #eee;
+    transition: box-shadow 0.15s;
+    flex-shrink: 0;
+
+    @media (max-width: 575px) {
+      width: 76px;
+      height: 76px;
+      border-radius: 12px;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__emoji {
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  &__name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    text-align: center;
+    line-height: 1.25;
+    max-width: 100%;
+    word-break: break-word;
+
+    @media (max-width: 575px) { font-size: 0.72rem; }
+
+    &--skeleton {
+      height: 14px;
+      width: 70px;
+      border-radius: 6px;
+      background: #f0f0f0;
+      animation: shimmer 1.4s infinite;
+    }
+  }
+}
+
+@keyframes shimmer {
+  0%   { background-color: #f0f0f0; }
+  50%  { background-color: #e0e0e0; }
+  100% { background-color: #f0f0f0; }
 }

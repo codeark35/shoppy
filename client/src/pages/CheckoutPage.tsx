@@ -11,6 +11,7 @@ import { useCheckout } from '../features/checkout/hooks/useCheckout';
 import { useCartPricing } from '../features/cart/hooks/useCartPricing';
 import { formatPrice } from '../shared/utils/formatPrice';
 import api from '../shared/lib/api';
+import { analyticsTracker } from '../features/analytics/services/analytics.tracker';
 import type { CreateOrderDto } from '../features/checkout/types/checkout.types';
 
 interface ShippingRate {
@@ -46,6 +47,8 @@ export function CheckoutPage() {
     phone: '',
     notes: '',
   });
+
+  useEffect(() => { analyticsTracker.trackCheckoutStart(); }, []);
 
   const [shippingRates, setShippingRates] = useState<ShippingRate[]>([]);
   const [selectedRate, setSelectedRate] = useState<string>('');

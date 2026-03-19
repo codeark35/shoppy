@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, Row, Col, Button, Spinner, Alert, Badge } from 'react-bootstrap';
 import { ShoppingCart } from 'lucide-react';
@@ -8,6 +8,7 @@ import { AppFooter } from '../shared/components/AppFooter';
 import { useProductDetail } from '../features/catalog/hooks/useProducts';
 import { useCartStore } from '../features/cart/store/cartStore';
 import { formatPrice } from '../shared/utils/formatPrice';
+import { analyticsTracker } from '../features/analytics/services/analytics.tracker';
 
 export function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -15,6 +16,10 @@ export function ProductPage() {
   const { addItem } = useCartStore();
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  useEffect(() => {
+    if (product) analyticsTracker.trackProductView(product.id);
+  }, [product?.id]);
 
   if (isLoading) {
     return (
@@ -41,6 +46,7 @@ export function ProductPage() {
 
   const handleAddToCart = () => {
     if (!selectedVariant) return;
+    analyticsTracker.trackAddToCart(product.id);
     addItem({
       variantId: selectedVariant.id,
       sku: selectedVariant.sku,

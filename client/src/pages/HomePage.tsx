@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import { AppNavbar } from '../shared/components/AppNavbar';
 import { BottomNav } from '../shared/components/BottomNav';
@@ -6,45 +5,8 @@ import { AppFooter } from '../shared/components/AppFooter';
 import { SectionTitle } from '../shared/components/SectionTitle';
 import { ProductSwiper } from '../features/catalog/components/ProductSwiper';
 import { FeaturedCategorySpotlight } from '../features/catalog/components/FeaturedCategorySpotlight';
-import { useCategories } from '../features/catalog/hooks/useProducts';
 import { HeroBannerSlider } from '../features/banners/components/HeroBannerSlider';
-
-// ── Categorías ───────────────────────────────────────────────────────────────
-const CATEGORY_ICONS: Record<string, string> = {
-  'Electrónica': '💻',
-  'Ropa': '👕',
-  'Hogar': '🏠',
-  'Deporte': '⚽',
-  'Belleza': '💄',
-  'Juguetes': '🧸',
-  'Libros': '📚',
-  'Alimentos': '🍎',
-};
-
-function CategorySection() {
-  const { data: categories } = useCategories();
-  const topLevel = categories?.filter((c) => !c.parentId).slice(0, 5) ?? [];
-
-  if (!topLevel.length) return null;
-
-  return (
-    <section className="py-4 bg-light">
-      <Container fluid="xl">
-        <SectionTitle title="Categorías" />
-        <div className="category-grid">
-          {topLevel.map((cat) => (
-            <Link key={cat.id} to={`/productos?categoria=${cat.slug}`} className="category-card">
-              <div className="category-card__icon">
-                <span>{CATEGORY_ICONS[cat.name] ?? '📦'}</span>
-              </div>
-              <span className="category-card__name">{cat.name}</span>
-            </Link>
-          ))}
-        </div>
-      </Container>
-    </section>
-  );
-}
+import { PopularCategoriesSection } from '../features/catalog/components/PopularCategoriesSection';
 
 // ── Página principal ─────────────────────────────────────────────────────────
 export function HomePage() {
@@ -53,7 +15,7 @@ export function HomePage() {
       <AppNavbar />
       <main className="page-content">
         <HeroBannerSlider />
-        <CategorySection />
+        <PopularCategoriesSection />
 
         <section className="py-5">
           <Container fluid="xl">
@@ -80,6 +42,10 @@ export function HomePage() {
         </section> */}
 
         <FeaturedCategorySpotlight />
+
+        <HeroBannerSlider type="PROMO_STRIP" />
+
+        <HeroBannerSlider type="PROMO_FOOTER" />
       </main>
       <AppFooter />
       <BottomNav />

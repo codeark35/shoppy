@@ -3,6 +3,7 @@ export interface Category {
   name: string;
   slug: string;
   imageUrl?: string;
+  coverImageUrl?: string;
   parentId?: string;
   isFeatured?: boolean;
   featuredPosition?: number;

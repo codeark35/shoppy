@@ -26,6 +26,15 @@ import type {
   UpdateBannerPayload,
 } from '../types/admin.types';
 import type { OrderStatus } from '../../orders/types/orders.types';
+import type {
+  AnalyticsSummary,
+  TimeSeriesPoint,
+  AnalyticsTopProduct,
+  AnalyticsTopCategory,
+  TopSearch,
+  FunnelStep,
+  AnalyticsQuery,
+} from '../../analytics/types/analytics.types';
 
 export const adminService = {
   // ── Órdenes ──────────────────────────────────────────────────────────────────
@@ -204,4 +213,26 @@ export const adminService = {
 
   reorderBanners: (items: { id: string; position: number }[]) =>
     api.post<{ success: boolean }>('/banners/admin/reorder', { items }).then((r) => r.data),
+
+  // ── Analítica ────────────────────────────────────────────────────────────────
+  getAnalyticsSummary: (params?: AnalyticsQuery) =>
+    api.get<AnalyticsSummary>('/analytics/summary', { params }).then((r) => r.data),
+
+  getAnalyticsVisits: (params?: AnalyticsQuery) =>
+    api.get<TimeSeriesPoint[]>('/analytics/visits', { params }).then((r) => r.data),
+
+  getAnalyticsRevenue: (params?: AnalyticsQuery) =>
+    api.get<TimeSeriesPoint[]>('/analytics/revenue', { params }).then((r) => r.data),
+
+  getAnalyticsTopProducts: (params?: AnalyticsQuery) =>
+    api.get<AnalyticsTopProduct[]>('/analytics/top-products', { params }).then((r) => r.data),
+
+  getAnalyticsTopCategories: (params?: AnalyticsQuery) =>
+    api.get<AnalyticsTopCategory[]>('/analytics/top-categories', { params }).then((r) => r.data),
+
+  getAnalyticsSearches: (params?: AnalyticsQuery) =>
+    api.get<TopSearch[]>('/analytics/searches', { params }).then((r) => r.data),
+
+  getAnalyticsFunnel: (params?: AnalyticsQuery) =>
+    api.get<FunnelStep[]>('/analytics/funnel', { params }).then((r) => r.data),
 };

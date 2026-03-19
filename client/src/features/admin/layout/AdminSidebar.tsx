@@ -10,6 +10,7 @@ import {
   Users,
   FileSearch,
   Image,
+  TrendingUp,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -42,6 +43,7 @@ const NAV_SECTIONS: NavSection[] = [
     section: 'General',
     items: [
       { to: '/admin/dashboard', icon: BarChart2, label: 'Dashboard', roles: ['ADMIN'] },
+      { to: '/admin/analitica', icon: TrendingUp, label: 'Analítica', roles: ['ADMIN'] },
     ],
   },
   {

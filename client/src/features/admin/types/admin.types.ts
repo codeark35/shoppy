@@ -135,6 +135,7 @@ export interface AdminCategory {
   name: string;
   slug: string;
   imageUrl?: string;
+  coverImageUrl?: string;
   parentId: string | null;
   isFeatured?: boolean;
   featuredPosition?: number;
@@ -146,6 +147,7 @@ export type CreateCategoryPayload = {
   slug: string;
   parentId?: string;
   imageUrl?: string;
+  coverImageUrl?: string;
   isFeatured?: boolean;
   featuredPosition?: number;
 };
@@ -232,7 +234,7 @@ export type PromotionListQuery = {
 
 // ── Banners ────────────────────────────────────────────────────────────────────
 
-export type BannerType = 'HERO' | 'PROMO';
+export type BannerType = 'HERO' | 'PROMO' | 'PROMO_FOOTER' | 'PROMO_STRIP';
 
 export interface AdminBanner {
   id: string;

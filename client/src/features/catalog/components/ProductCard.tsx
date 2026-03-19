@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { formatPrice } from '../../../shared/utils/formatPrice';
 import { useCartStore } from '../../cart/store/cartStore';
 import { useWishlist } from '../../wishlist/hooks/useWishlist';
+import { analyticsTracker } from '../../analytics/services/analytics.tracker';
 import type { Product } from '../types/catalog.types';
 
 interface ProductCardProps {
@@ -41,6 +42,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const handleAddToCart = () => {
     if (firstVariant) {
+      analyticsTracker.trackAddToCart(product.id);
       addItem({
         variantId: firstVariant.id,
         sku: firstVariant.sku,
@@ -60,10 +62,10 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <div className="product-card">
+    <div className="product-card ">
       {/* Imagen + info — link a detalle del producto */}
-      <Link to={`/productos/${product.slug}`} className="text-decoration-none d-flex flex-column flex-grow-1">
-        <div className="product-card__image-wrapper">
+      <Link to={`/productos/${product.slug}`} className="text-decoration-none d-flex flex-column flex-grow-1" onClick={() => analyticsTracker.trackProductView(product.id)}>
+        <div className="product-card__image-wrapper ">
           {/* siempre renderizar <img>: si src='' el ::before de CSS muestra el placeholder */}
           <img
             src={firstImage?.url ?? ''}

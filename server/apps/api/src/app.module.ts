@@ -24,6 +24,7 @@ import { ReportsModule } from './modules/reports/reports.module';
 import { SearchModule } from './modules/search/search.module';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
 import { BannersModule } from './modules/banners/banners.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
 import { APP_FILTER } from '@nestjs/core';
 
@@ -95,6 +96,7 @@ import { APP_FILTER } from '@nestjs/core';
     SearchModule,
     RecommendationsModule,
     BannersModule,
+    AnalyticsModule,
   ],
   providers: [
     {

@@ -37,9 +37,9 @@ function SpotlightBlock({ category }: { category: Category }) {
             to={`/productos?categoria=${category.slug}`}
             className="featured-spotlight__card"
           >
-            {category.imageUrl ? (
+            {(category.coverImageUrl || category.imageUrl) ? (
               <img
-                src={category.imageUrl}
+                src={category.coverImageUrl ?? category.imageUrl!}
                 alt={category.name}
                 className="featured-spotlight__card-img"
               />

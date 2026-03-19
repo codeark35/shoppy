@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, InputGroup, Button } from 'react-bootstrap';
 import { Search, SlidersHorizontal } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { AppNavbar } from '../shared/components/AppNavbar';
 import { BottomNav } from '../shared/components/BottomNav';
 import { AppFooter } from '../shared/components/AppFooter';
@@ -8,13 +9,41 @@ import { ProductGrid } from '../features/catalog/components/ProductGrid';
 import { FilterSidebar } from '../features/catalog/components/FilterSidebar';
 import { CategoryNav } from '../features/catalog/components/CategoryNav';
 import { useDebounce } from '../shared/hooks/useDebounce';
+import { analyticsTracker } from '../features/analytics/services/analytics.tracker';
 import type { ProductFilters } from '../features/catalog/types/catalog.types';
 
 export function CatalogPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<ProductFilters>({});
+  const [filters, setFilters] = useState<ProductFilters>(() => {
+    const categoria = searchParams.get('categoria');
+    return categoria ? { categorySlug: categoria } : {};
+  });
   const debouncedSearch = useDebounce(search, 400);
+
+  // Sync URL → filtro cuando cambia el parámetro ?categoria= (ej. navegación interna)
+  useEffect(() => {
+    const categoria = searchParams.get('categoria');
+    setFilters((prev) => {
+      if ((categoria ?? undefined) === prev.categorySlug) return prev;
+      return { ...prev, categorySlug: categoria ?? undefined };
+    });
+  }, [searchParams]);
+
+  // Sync filtro → URL para que la barra de direcciones refleje la categoría activa
+  const handleFiltersChange = (next: ProductFilters) => {
+    setFilters(next);
+    if (next.categorySlug) {
+      setSearchParams({ categoria: next.categorySlug }, { replace: true });
+    } else {
+      setSearchParams({}, { replace: true });
+    }
+  };
+
+  useEffect(() => {
+    if (debouncedSearch.trim()) analyticsTracker.trackSearch(debouncedSearch.trim());
+  }, [debouncedSearch]);
 
   const activeFilters: ProductFilters = {
     ...filters,
@@ -59,7 +88,7 @@ export function CatalogPage() {
         <div className="mb-4">
           <CategoryNav
             activeSlug={filters.categorySlug}
-            onSelect={(partial) => setFilters((prev) => ({ ...prev, ...partial }))}
+            onSelect={(partial) => handleFiltersChange({ ...filters, ...partial })}
           />
         </div>
 
@@ -70,7 +99,7 @@ export function CatalogPage() {
         show={showFilters}
         onHide={() => setShowFilters(false)}
         filters={filters}
-        onFiltersChange={setFilters}
+        onFiltersChange={handleFiltersChange}
       />
 
       <AppFooter />
