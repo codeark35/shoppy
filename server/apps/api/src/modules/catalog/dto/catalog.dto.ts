@@ -1,6 +1,6 @@
 import {
   IsString, IsOptional, IsNumber, IsBoolean,
-  IsArray, ValidateNested, IsPositive, Min, IsIn,
+  IsArray, ValidateNested, IsPositive, Min, IsIn, IsObject,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -78,7 +78,29 @@ export class CreateVariantDto {
   @Min(0)
   stock: number;
 
-  attributes: Record<string, string>; // { "color": "Rojo", "talle": "M" }
+  @IsOptional()
+  @IsObject()
+  attributes?: Record<string, string>;
+}
+
+export class UpdateVariantDto {
+  @IsOptional()
+  @IsString()
+  sku?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  price?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  stock?: number;
+
+  @IsOptional()
+  @IsObject()
+  attributes?: Record<string, string>;
 }
 
 export class CreateProductImageDto {

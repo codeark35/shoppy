@@ -189,19 +189,38 @@ export class AnalyticsService {
   }
 
   // ── Top categorías ───────────────────────────────────────────────────────────
+  // Combina eventos CATEGORY_VIEW directos + PRODUCT_VIEW mapeados a su categoría
 
   async getTopCategories(query: AnalyticsQueryDto, limit = 8) {
     const { from, to } = this.getDateRange(query);
 
     const rows: Array<{ categoryId: string; count: bigint }> =
       await this.prisma.$queryRaw`
-        SELECT "categoryId", COUNT(*) as count
-        FROM "AnalyticsEvent"
-        WHERE type = 'CATEGORY_VIEW'
-          AND "categoryId" IS NOT NULL
-          AND "createdAt" >= ${from}
-          AND "createdAt" <= ${to}
-        GROUP BY "categoryId"
+        SELECT cid AS "categoryId", SUM(cnt)::bigint AS count
+        FROM (
+          -- Visitas directas a categoría
+          SELECT "categoryId" AS cid, COUNT(*) AS cnt
+          FROM "AnalyticsEvent"
+          WHERE type = 'CATEGORY_VIEW'
+            AND "categoryId" IS NOT NULL
+            AND "createdAt" >= ${from}
+            AND "createdAt" <= ${to}
+          GROUP BY "categoryId"
+
+          UNION ALL
+
+          -- Visitas a productos (mapeadas a su categoría)
+          SELECT p."categoryId" AS cid, COUNT(*) AS cnt
+          FROM "AnalyticsEvent" ae
+          INNER JOIN "Product" p ON ae."productId" = p.id
+          WHERE ae.type = 'PRODUCT_VIEW'
+            AND ae."productId" IS NOT NULL
+            AND ae."createdAt" >= ${from}
+            AND ae."createdAt" <= ${to}
+          GROUP BY p."categoryId"
+        ) combined
+        WHERE cid IS NOT NULL
+        GROUP BY cid
         ORDER BY count DESC
         LIMIT ${limit}
       `;

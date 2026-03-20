@@ -9,6 +9,7 @@ import { ProductGrid } from '../features/catalog/components/ProductGrid';
 import { FilterSidebar } from '../features/catalog/components/FilterSidebar';
 import { CategoryNav } from '../features/catalog/components/CategoryNav';
 import { useDebounce } from '../shared/hooks/useDebounce';
+import { useCategories } from '../features/catalog/hooks/useProducts';
 import { analyticsTracker } from '../features/analytics/services/analytics.tracker';
 import type { ProductFilters } from '../features/catalog/types/catalog.types';
 
@@ -21,6 +22,7 @@ export function CatalogPage() {
     return categoria ? { categorySlug: categoria } : {};
   });
   const debouncedSearch = useDebounce(search, 400);
+  const { data: allCategories = [] } = useCategories();
 
   // Sync URL → filtro cuando cambia el parámetro ?categoria= (ej. navegación interna)
   useEffect(() => {
@@ -40,6 +42,14 @@ export function CatalogPage() {
       setSearchParams({}, { replace: true });
     }
   };
+
+  // Trackear visita a categoría cuando cambia el filtro activo
+  useEffect(() => {
+    if (!filters.categorySlug) return;
+    const flat = allCategories.flatMap((c) => [c, ...(c.children ?? [])]);
+    const cat = flat.find((c) => c.slug === filters.categorySlug);
+    if (cat?.id) analyticsTracker.trackCategoryView(cat.id);
+  }, [filters.categorySlug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (debouncedSearch.trim()) analyticsTracker.trackSearch(debouncedSearch.trim());

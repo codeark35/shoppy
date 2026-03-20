@@ -5,7 +5,7 @@ import {
   Alert, Spinner, InputGroup,
 } from 'react-bootstrap';
 import {
-  ArrowLeft, Save, Plus, Trash2, Image, X, Package,
+  ArrowLeft, Save, Plus, Trash2, Image, X, Package, Pencil,
 } from 'lucide-react';
 import {
   useCreateProduct,
@@ -13,6 +13,7 @@ import {
   useAdminProductById,
   useAdminCategories,
   useAddVariant,
+  useUpdateVariant,
   useDeleteVariant,
   adminService,
 } from '../features/admin';
@@ -23,6 +24,7 @@ import type {
   AdminProductVariant,
   CreateProductPayload,
   CreateVariantPayload,
+  UpdateVariantPayload,
 } from '../features/admin';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -60,6 +62,7 @@ export default function AdminProductFormPage() {
   const createMut = useCreateProduct();
   const updateMut = useUpdateProduct();
   const addVariantMut = useAddVariant();
+  const updateVariantMut = useUpdateVariant();
   const deleteVariantMut = useDeleteVariant();
 
   // ── Estados del formulario ───────────────────────────────────────────────────
@@ -79,12 +82,48 @@ export default function AdminProductFormPage() {
   // ── Variantes ────────────────────────────────────────────────────────────────
   const [variants, setVariants] = useState<AdminProductVariant[]>([]);
   const [showVariantForm, setShowVariantForm] = useState(false);
+  const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
   const [variantForm, setVariantForm] = useState<CreateVariantPayload>({
     sku: '', price: 0, stock: 0, attributes: {},
   });
   const [attrKey, setAttrKey] = useState('');
   const [attrVal, setAttrVal] = useState('');
   const [variantError, setVariantError] = useState<string | null>(null);
+
+  // Genera SKU automático basado en el slug del producto y el número de variantes existentes
+  const buildAutoSku = (existingVariants: AdminProductVariant[]) => {
+    const base = (product?.slug ?? form.slug ?? 'prod').toUpperCase().replace(/-/g, '-').substring(0, 20);
+    const seq = existingVariants.length + 1;
+    return `${base}-V${seq}`;
+  };
+
+  const openVariantForm = () => {
+    setEditingVariantId(null);
+    setVariantForm({
+      sku: buildAutoSku(variants),
+      price: product?.basePrice ?? form.basePrice ?? 0,
+      stock: 0,
+      attributes: {},
+    });
+    setAttrKey('');
+    setAttrVal('');
+    setVariantError(null);
+    setShowVariantForm(true);
+  };
+
+  const openEditVariantForm = (v: AdminProductVariant) => {
+    setEditingVariantId(v.id);
+    setVariantForm({
+      sku: v.sku,
+      price: v.price,
+      stock: v.stock,
+      attributes: { ...(v.attributes ?? {}) },
+    });
+    setAttrKey('');
+    setAttrVal('');
+    setVariantError(null);
+    setShowVariantForm(true);
+  };
 
   // Populate formulario cuando carga el producto
   useEffect(() => {
@@ -180,20 +219,43 @@ export default function AdminProductFormPage() {
       return { ...prev, attributes: a };
     });
 
-  const handleAddVariant = async () => {
+  const handleSaveVariant = async () => {
     if (!product || !variantForm.sku.trim()) return;
     setVariantError(null);
+
+    // Flush atributo pendiente si el usuario escribió pero no hizo clic en "+"
+    let finalAttrs = { ...variantForm.attributes };
+    if (attrKey.trim() && attrVal.trim()) {
+      finalAttrs[attrKey.trim()] = attrVal.trim();
+    }
+    const payload = { ...variantForm, attributes: finalAttrs };
+
     try {
-      const created = await addVariantMut.mutateAsync({
-        productId: product.id,
-        payload: variantForm,
-      });
-      // La mutación invalida el cache — refrescamos variantes desde la respuesta
-      setVariants((prev) => [...prev, created as unknown as AdminProductVariant]);
-      setVariantForm({ sku: '', price: 0, stock: 0, attributes: {} });
+      if (editingVariantId) {
+        // Editar variante existente
+        const updated = await updateVariantMut.mutateAsync({
+          productId: product.id,
+          variantId: editingVariantId,
+          payload: payload as UpdateVariantPayload,
+        });
+        setVariants((prev) => prev.map((v) => v.id === editingVariantId ? updated : v));
+      } else {
+        // Nueva variante
+        const created = await addVariantMut.mutateAsync({
+          productId: product.id,
+          payload,
+        });
+        setVariants((prev) => [...prev, created]);
+      }
       setShowVariantForm(false);
-    } catch {
-      setVariantError('Error al agregar la variante. Verificá el SKU (debe ser único).');
+      setEditingVariantId(null);
+      setVariantError(null);
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        'Error al guardar la variante.';
+      setVariantError(Array.isArray(msg) ? msg.join(', ') : String(msg));
     }
   };
 
@@ -501,7 +563,13 @@ export default function AdminProductFormPage() {
                     variant="outline-primary"
                     size="sm"
                     className="d-flex align-items-center gap-1"
-                    onClick={() => setShowVariantForm((s) => !s)}
+                    onClick={() => {
+                      if (showVariantForm && !editingVariantId) {
+                        setShowVariantForm(false);
+                      } else {
+                        openVariantForm();
+                      }
+                    }}
                   >
                     <Plus size={13} /> Agregar variante
                   </Button>
@@ -512,21 +580,34 @@ export default function AdminProductFormPage() {
                 )}
               </Card.Header>
 
-              {/* Formulario inline nueva variante */}
+              {/* Formulario inline nueva/editar variante */}
               {showVariantForm && isEdit && (
                 <div className="p-3 border-bottom" style={{ background: '#f8f9fa' }}>
+                  <div className="small fw-semibold mb-3 text-muted">
+                    {editingVariantId ? '✏️ Editando variante' : '➕ Nueva variante'}
+                  </div>
                   {variantError && (
                     <Alert variant="danger" className="py-2 small mb-3">{variantError}</Alert>
                   )}
                   <div className="row g-2 mb-3">
                     <div className="col-12 col-sm-4">
                       <Form.Label className="small fw-medium mb-1">SKU *</Form.Label>
-                      <Form.Control
-                        size="sm"
-                        value={variantForm.sku}
-                        onChange={(e) => setVariantForm((prev) => ({ ...prev, sku: e.target.value }))}
-                        placeholder="PROD-NEGRO-M"
-                      />
+                      <InputGroup size="sm">
+                        <Form.Control
+                          value={variantForm.sku}
+                          onChange={(e) => setVariantForm((prev) => ({ ...prev, sku: e.target.value }))}
+                          placeholder="PROD-NEGRO-M"
+                        />
+                      <Button
+                          type="button"
+                          variant="outline-secondary"
+                          title="Regenerar SKU automático"
+                          disabled={!!editingVariantId}
+                          onClick={() => setVariantForm((prev) => ({ ...prev, sku: buildAutoSku(variants) }))}
+                        >
+                          ↺
+                        </Button>
+                      </InputGroup>
                     </div>
                     <div className="col-6 col-sm-4">
                       <Form.Label className="small fw-medium mb-1">Precio (₲) *</Form.Label>
@@ -600,12 +681,12 @@ export default function AdminProductFormPage() {
                       type="button"
                       variant="primary"
                       size="sm"
-                      onClick={handleAddVariant}
-                      disabled={!variantForm.sku.trim() || addVariantMut.isPending}
+                      onClick={handleSaveVariant}
+                      disabled={!variantForm.sku.trim() || addVariantMut.isPending || updateVariantMut.isPending}
                     >
-                      {addVariantMut.isPending
+                      {(addVariantMut.isPending || updateVariantMut.isPending)
                         ? <><Spinner size="sm" className="me-1" /> Guardando…</>
-                        : 'Guardar variante'}
+                        : editingVariantId ? 'Actualizar variante' : 'Guardar variante'}
                     </Button>
                     <Button
                       type="button"
@@ -613,6 +694,7 @@ export default function AdminProductFormPage() {
                       size="sm"
                       onClick={() => {
                         setShowVariantForm(false);
+                        setEditingVariantId(null);
                         setVariantError(null);
                       }}
                     >
@@ -644,7 +726,10 @@ export default function AdminProductFormPage() {
                         </td>
                       </tr>
                     ) : variants.map((v) => (
-                      <tr key={v.id}>
+                      <tr
+                          key={v.id}
+                          style={editingVariantId === v.id ? { background: '#fff8e1' } : undefined}
+                        >
                         <td className="ps-3 font-monospace fw-medium">{v.sku}</td>
                         <td className="fw-semibold">{formatPrice(v.price)}</td>
                         <td>
@@ -671,17 +756,29 @@ export default function AdminProductFormPage() {
                         </td>
                         {isEdit && (
                           <td className="pe-3 text-end">
-                            <Button
-                              type="button"
-                              variant="outline-danger"
-                              size="sm"
-                              style={{ padding: '2px 7px' }}
-                              disabled={deleteVariantMut.isPending}
-                              onClick={() => handleDeleteVariant(v.id)}
-                              title="Eliminar variante"
-                            >
-                              <Trash2 size={12} />
-                            </Button>
+                            <div className="d-flex gap-1 justify-content-end">
+                              <Button
+                                type="button"
+                                variant="outline-secondary"
+                                size="sm"
+                                style={{ padding: '2px 7px' }}
+                                onClick={() => openEditVariantForm(v)}
+                                title="Editar variante"
+                              >
+                                <Pencil size={12} />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline-danger"
+                                size="sm"
+                                style={{ padding: '2px 7px' }}
+                                disabled={deleteVariantMut.isPending}
+                                onClick={() => handleDeleteVariant(v.id)}
+                                title="Eliminar variante"
+                              >
+                                <Trash2 size={12} />
+                              </Button>
+                            </div>
                           </td>
                         )}
                       </tr>

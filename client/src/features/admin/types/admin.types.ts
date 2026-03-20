@@ -128,6 +128,13 @@ export type CreateVariantPayload = {
   attributes: Record<string, string>;
 };
 
+export type UpdateVariantPayload = {
+  sku?: string;
+  price?: number;
+  stock?: number;
+  attributes?: Record<string, string>;
+};
+
 // ── Categorías ────────────────────────────────────────────────────────────────
 
 export interface AdminCategory {

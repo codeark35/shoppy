@@ -6,6 +6,7 @@ import type {
   CreateProductPayload,
   UpdateProductPayload,
   CreateVariantPayload,
+  UpdateVariantPayload,
   AddProductImagePayload,
   CreateCategoryPayload,
   UpdateCategoryPayload,
@@ -140,6 +141,15 @@ export const useAddVariant = () => {
   return useMutation({
     mutationFn: ({ productId, payload }: { productId: string; payload: CreateVariantPayload }) =>
       adminService.addVariant(productId, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'products'] }),
+  });
+};
+
+export const useUpdateVariant = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ productId, variantId, payload }: { productId: string; variantId: string; payload: UpdateVariantPayload }) =>
+      adminService.updateVariant(productId, variantId, payload),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'products'] }),
   });
 };

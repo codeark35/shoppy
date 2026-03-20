@@ -6,11 +6,13 @@ import type {
   PaginatedResponse,
   AdminOrderQuery,
   AdminProduct,
+  AdminProductVariant,
   AdminProductImage,
   AdminProductsQuery,
   CreateProductPayload,
   UpdateProductPayload,
   CreateVariantPayload,
+  UpdateVariantPayload,
   AddProductImagePayload,
   AdminCategory,
   CreateCategoryPayload,
@@ -129,7 +131,12 @@ export const adminService = {
 
   addVariant: (productId: string, payload: CreateVariantPayload) =>
     api
-      .post<AdminProduct>(`/catalog/products/${productId}/variants`, payload)
+      .post<AdminProductVariant>(`/catalog/products/${productId}/variants`, payload)
+      .then((r) => r.data),
+
+  updateVariant: (productId: string, variantId: string, payload: UpdateVariantPayload) =>
+    api
+      .patch<AdminProductVariant>(`/catalog/products/${productId}/variants/${variantId}`, payload)
       .then((r) => r.data),
 
   deleteVariant: (productId: string, variantId: string) =>

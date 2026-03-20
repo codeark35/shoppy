@@ -48,7 +48,7 @@ export function HomePage() {
 
         <section className="py-5">
           <Container fluid="xl">
-            <SectionTitle title="Ingresos Recientes" linkText="Ver todos" linkTo="/productos" />
+            <SectionTitle title="Productos Recientes" linkText="Ver todos" linkTo="/productos" />
             <ProductSwiper filters={{ sortBy: 'newest' }} limit={20} autoplay />
           </Container>
         </section>

@@ -6,7 +6,7 @@ import { CatalogService } from './catalog.service';
 import {
   CreateProductDto, UpdateProductDto,
   CreateCategoryDto, UpdateCategoryDto,
-  ProductQueryDto, CreateVariantDto,
+  ProductQueryDto, CreateVariantDto, UpdateVariantDto,
   CreateProductImageDto,
 } from './dto/catalog.dto';
 import { JwtAuthGuard, Roles, RolesGuard } from '@libs/common';
@@ -111,6 +111,18 @@ export class CatalogController {
   addVariant(@Param('id') productId: string, @Body() dto: CreateVariantDto) {
     return this.catalogService.addVariant(productId, dto);
   }
+
+  @Patch('products/:id/variants/:variantId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  updateVariant(
+    @Param('id') productId: string,
+    @Param('variantId') variantId: string,
+    @Body() dto: UpdateVariantDto,
+  ) {
+    return this.catalogService.updateVariant(productId, variantId, dto);
+  }
+
   @Delete('products/:id/variants/:variantId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)

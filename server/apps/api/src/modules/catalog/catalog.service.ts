@@ -307,7 +307,7 @@ export class CatalogService {
         slug: uniqueSlug,
         basePrice: productData.basePrice,
         variants: variants?.length
-          ? { create: variants }
+          ? { create: variants.map((v) => ({ ...v, attributes: v.attributes ?? {} })) }
           : undefined,
       },
       include: { variants: true, category: true },
@@ -358,7 +358,44 @@ export class CatalogService {
 
   async addVariant(productId: string, dto: CreateVariantDto) {
     await this.getProductById(productId);
-    return this.prisma.productVariant.create({ data: { productId, ...dto } });
+
+    // Garantizar SKU único — si ya existe, agrega sufijo numérico
+    let sku = dto.sku;
+    const existing = await this.prisma.productVariant.findUnique({ where: { sku } });
+    if (existing) {
+      let i = 2;
+      while (await this.prisma.productVariant.findUnique({ where: { sku: `${dto.sku}-${i}` } })) {
+        i++;
+      }
+      sku = `${dto.sku}-${i}`;
+    }
+
+    return this.prisma.productVariant.create({
+      data: { productId, ...dto, sku, attributes: dto.attributes ?? {} },
+    });
+  }
+
+  async updateVariant(productId: string, variantId: string, dto: any) {
+    const variant = await this.prisma.productVariant.findFirst({
+      where: { id: variantId, productId },
+    });
+    if (!variant) throw new NotFoundException('Variante no encontrada');
+
+    // Si cambia el SKU, verificar unicidad
+    if (dto.sku && dto.sku !== variant.sku) {
+      const conflict = await this.prisma.productVariant.findUnique({ where: { sku: dto.sku } });
+      if (conflict) throw new ConflictException('El SKU ya está en uso');
+    }
+
+    return this.prisma.productVariant.update({
+      where: { id: variantId },
+      data: {
+        ...(dto.sku !== undefined && { sku: dto.sku }),
+        ...(dto.price !== undefined && { price: dto.price }),
+        ...(dto.stock !== undefined && { stock: dto.stock }),
+        ...(dto.attributes !== undefined && { attributes: dto.attributes }),
+      },
+    });
   }
 
   async updateVariantStock(variantId: string, stock: number) {

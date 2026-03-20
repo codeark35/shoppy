@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, Row, Col, Button, Spinner, Alert, Badge } from 'react-bootstrap';
 import { ShoppingCart } from 'lucide-react';
@@ -14,12 +14,49 @@ export function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: product, isLoading, isError } = useProductDetail(slug!);
   const { addItem } = useCartStore();
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const [selectedAttrs, setSelectedAttrs] = useState<Record<string, string>>({});
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   useEffect(() => {
     if (product) analyticsTracker.trackProductView(product.id);
   }, [product?.id]);
+
+  // Inicializar atributos desde la primera variante al cargar el producto
+  useEffect(() => {
+    if (product?.variants[0]?.attributes) {
+      setSelectedAttrs({ ...product.variants[0].attributes });
+    }
+  }, [product?.id]);
+
+  // Claves únicas de atributos en todas las variantes
+  const attrKeys = useMemo(() => {
+    if (!product) return [] as string[];
+    const keys = new Set<string>();
+    product.variants.forEach(v => Object.keys(v.attributes ?? {}).forEach(k => keys.add(k)));
+    return Array.from(keys);
+  }, [product]);
+
+  // Valores únicos por clave de atributo
+  const attrValues = useMemo(() => {
+    if (!product) return {} as Record<string, string[]>;
+    return attrKeys.reduce<Record<string, string[]>>((acc, key) => {
+      acc[key] = [...new Set(
+        product.variants.map(v => v.attributes?.[key]).filter((v): v is string => !!v)
+      )];
+      return acc;
+    }, {});
+  }, [attrKeys, product]);
+
+  // Variante activa: coincidencia exacta de todos los atributos seleccionados
+  const selectedVariant = useMemo(() => {
+    if (!product) return undefined;
+    if (!attrKeys.length) return product.variants[0];
+    return (
+      product.variants.find(v =>
+        attrKeys.every(k => v.attributes[k] === selectedAttrs[k])
+      ) ?? product.variants[0]
+    );
+  }, [product, selectedAttrs, attrKeys]);
 
   if (isLoading) {
     return (
@@ -41,8 +78,28 @@ export function ProductPage() {
     );
   }
 
-  const selectedVariant = product.variants.find((v) => v.id === selectedVariantId)
-    ?? product.variants[0];
+  // Seleccionar atributo: auto-completa el resto buscando la variante con mayor overlap
+  const handleAttrSelect = (key: string, value: string) => {
+    const newAttrs = { ...selectedAttrs, [key]: value };
+    // Coincidencia exacta
+    const exact = product.variants.find(v =>
+      attrKeys.every(k => v.attributes[k] === newAttrs[k])
+    );
+    if (exact) { setSelectedAttrs({ ...exact.attributes }); return; }
+    // Sin coincidencia exacta → buscar variante con este valor que tenga mayor overlap
+    const candidates = product.variants.filter(v => v.attributes[key] === value);
+    if (!candidates.length) { setSelectedAttrs(newAttrs); return; }
+    if (candidates.length === 1) { setSelectedAttrs({ ...candidates[0].attributes }); return; }
+    const best = candidates.reduce((acc, v) => {
+      const score = attrKeys.filter(k => k !== key && v.attributes[k] === selectedAttrs[k]).length;
+      const accScore = attrKeys.filter(k => k !== key && acc.attributes[k] === selectedAttrs[k]).length;
+      return score > accScore ? v : acc;
+    });
+    setSelectedAttrs({ ...best.attributes });
+  };
+
+  const isValueAvailable = (key: string, value: string) =>
+    product.variants.some(v => v.attributes[key] === value && v.stock > 0);
 
   const handleAddToCart = () => {
     if (!selectedVariant) return;
@@ -122,23 +179,38 @@ export function ProductPage() {
             <p className="text-primary fs-4 fw-bold">{formatPrice(selectedVariant?.price ?? product.basePrice)}</p>
             <p className="text-muted">{product.description}</p>
 
-            {product.variants.length > 1 && (
+            {product.variants.length > 0 && attrKeys.length > 0 && (
               <div className="mb-3">
-                <strong>Variantes:</strong>
-                <div className="d-flex flex-wrap gap-2 mt-2">
-                  {product.variants.map((v) => (
-                    <Button
-                      key={v.id}
-                      variant={v.id === (selectedVariantId ?? product.variants[0]?.id) ? 'primary' : 'outline-secondary'}
-                      size="sm"
-                      disabled={v.stock === 0}
-                      onClick={() => setSelectedVariantId(v.id)}
-                    >
-                      {Object.values(v.attributes).join(' / ')}
-                      {v.stock === 0 && ' (sin stock)'}
-                    </Button>
-                  ))}
-                </div>
+                {attrKeys.map(key => (
+                  <div key={key} className="mb-2">
+                    <div className="small fw-semibold text-muted mb-1">
+                      {key}:{' '}
+                      <span className="text-dark">{selectedAttrs[key] ?? '—'}</span>
+                    </div>
+                    <div className="d-flex flex-wrap gap-2">
+                      {attrValues[key].map(val => {
+                        const available = isValueAvailable(key, val);
+                        const active = selectedAttrs[key] === val;
+                        return (
+                          <Button
+                            key={val}
+                            size="sm"
+                            variant={active ? 'primary' : 'outline-secondary'}
+                            disabled={!available}
+                            onClick={() => handleAttrSelect(key, val)}
+                            style={{
+                              opacity: available ? 1 : 0.4,
+                              textDecoration: !available ? 'line-through' : undefined,
+                              minWidth: 48,
+                            }}
+                          >
+                            {val}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
