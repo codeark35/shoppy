@@ -17,19 +17,17 @@ export function AuthInit() {
     if (attempted.current) return;
     attempted.current = true;
 
-    // Solo intentar si hay usuario guardado pero no hay token en memoria
     if (user && !accessToken) {
       authService
         .refresh()
         .then(({ accessToken: newToken }) => {
-          // Re-usar el usuario persistido, actualizar con el nuevo token
           setAuth(user, newToken);
         })
         .catch(() => {
-          // Refresh token expirado o inválido → limpiar sesión
           clearAuth();
         });
     }
+    // Si no hay user guardado, isInitializing ya es false — no hace falta nada
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;

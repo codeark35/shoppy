@@ -5,7 +5,6 @@ import { Truck, Zap } from 'lucide-react';
 import { AppNavbar } from '../shared/components/AppNavbar';
 import { BottomNav } from '../shared/components/BottomNav';
 import { AppFooter } from '../shared/components/AppFooter';
-import { useAuthStore } from '../features/auth/store/authStore';
 import { useCartStore } from '../features/cart/store/cartStore';
 import { useCheckout } from '../features/checkout/hooks/useCheckout';
 import { useCartPricing } from '../features/cart/hooks/useCartPricing';
@@ -23,7 +22,6 @@ interface ShippingRate {
 }
 
 export function CheckoutPage() {
-  const { isAuthenticated } = useAuthStore();
   const { cart } = useCartStore();
   const { items, total } = cart;
   const navigate = useNavigate();
@@ -79,11 +77,6 @@ export function CheckoutPage() {
   const selectedRateObj = shippingRates.find((r) => r.id === selectedRate);
   const shippingCost = selectedRateObj ? Number(selectedRateObj.price) : 0;
   const finalTotal = (pricing?.subtotalAfter ?? total - couponDiscount) + shippingCost;
-
-  if (!isAuthenticated) {
-    navigate('/');
-    return null;
-  }
 
   if (items.length === 0) {
     navigate('/carrito');

@@ -6,11 +6,29 @@ interface AuthStoreState {
   user: User | null;
   accessToken: string | null;
   isAuthenticated: boolean;
+  /** true mientras AuthInit está resolviendo el refresh inicial */
+  isInitializing: boolean;
   setAuth: (user: User, accessToken: string) => void;
   clearAuth: () => void;
   updateUser: (user: Partial<User>) => void;
   setAccessToken: (token: string) => void;
+  setInitializing: (value: boolean) => void;
 }
+
+/**
+ * Comprueba de forma síncrona (antes de que React renderice nada) si hay un
+ * usuario persistido en localStorage.  Si lo hay, el store arranca con
+ * isInitializing = true para que ProtectedRoute muestre un spinner mientras
+ * AuthInit dispara el refresh.
+ */
+const hasPersistedUser = (() => {
+  try {
+    const raw = localStorage.getItem('auth-storage');
+    return raw ? Boolean(JSON.parse(raw)?.state?.user) : false;
+  } catch {
+    return false;
+  }
+})();
 
 export const useAuthStore = create<AuthStoreState>()(
   persist(
@@ -18,14 +36,14 @@ export const useAuthStore = create<AuthStoreState>()(
       user: null,
       accessToken: null,
       isAuthenticated: false,
+      isInitializing: hasPersistedUser,
 
       setAuth: (user, accessToken) => {
-        // Token solo en memoria — NO se escribe en localStorage directamente
-        set({ user, accessToken, isAuthenticated: true });
+        set({ user, accessToken, isAuthenticated: true, isInitializing: false });
       },
 
       clearAuth: () => {
-        set({ user: null, accessToken: null, isAuthenticated: false });
+        set({ user: null, accessToken: null, isAuthenticated: false, isInitializing: false });
       },
 
       updateUser: (partial) =>
@@ -33,15 +51,15 @@ export const useAuthStore = create<AuthStoreState>()(
           user: state.user ? { ...state.user, ...partial } : null,
         })),
 
-      // Actualiza solo el token (usado por el interceptor de auto-refresh)
       setAccessToken: (token) => {
-        set({ accessToken: token, isAuthenticated: true });
+        set({ accessToken: token, isAuthenticated: true, isInitializing: false });
       },
+
+      setInitializing: (value) => set({ isInitializing: value }),
     }),
     {
       name: 'auth-storage',
       // Solo persiste el usuario — el accessToken queda en memoria (no en localStorage)
-      // Esto evita que el token quede expuesto a scripts XSS
       partialize: (state) => ({ user: state.user }),
     },
   ),

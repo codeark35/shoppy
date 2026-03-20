@@ -3,7 +3,7 @@ import {
   Body, Param, UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UpdateProfileDto, CreateAddressDto } from './dto/users.dto';
+import { UpdateProfileDto, CreateAddressDto, UpdateAddressDto, ChangePasswordDto } from './dto/users.dto';
 import { JwtAuthGuard, CurrentUser } from '@libs/common';
 
 @Controller('users')
@@ -34,6 +34,25 @@ export class UsersController {
   @Delete('me/addresses/:id')
   deleteAddress(@CurrentUser('id') userId: string, @Param('id') addressId: string) {
     return this.usersService.deleteAddress(userId, addressId);
+  }
+
+  @Patch('me/addresses/:id')
+  updateAddress(
+    @CurrentUser('id') userId: string,
+    @Param('id') addressId: string,
+    @Body() dto: UpdateAddressDto,
+  ) {
+    return this.usersService.updateAddress(userId, addressId, dto);
+  }
+
+  @Patch('me/addresses/:id/default')
+  setDefaultAddress(@CurrentUser('id') userId: string, @Param('id') addressId: string) {
+    return this.usersService.setDefaultAddress(userId, addressId);
+  }
+
+  @Patch('me/change-password')
+  changePassword(@CurrentUser('id') userId: string, @Body() dto: ChangePasswordDto) {
+    return this.usersService.changePassword(userId, dto);
   }
 
   // ─── Wishlist ────────────────────────────────────────────────────────────

@@ -355,7 +355,14 @@ export class CatalogService {
   }
 
   // ─── Variantes ────────────────────────────────────────────────────────────────
-
+  /** Invalida el caché del producto por su ID (resuelve el slug primero) */
+  private async invalidateProductCache(productId: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+      select: { slug: true },
+    });
+    if (product?.slug) await this.redis.del(`catalog:product:${product.slug}`);
+  }
   async addVariant(productId: string, dto: CreateVariantDto) {
     await this.getProductById(productId);
 
@@ -372,6 +379,9 @@ export class CatalogService {
 
     return this.prisma.productVariant.create({
       data: { productId, ...dto, sku, attributes: dto.attributes ?? {} },
+    }).then(async (v) => {
+      await this.invalidateProductCache(productId);
+      return v;
     });
   }
 
@@ -387,7 +397,7 @@ export class CatalogService {
       if (conflict) throw new ConflictException('El SKU ya está en uso');
     }
 
-    return this.prisma.productVariant.update({
+    const updated = await this.prisma.productVariant.update({
       where: { id: variantId },
       data: {
         ...(dto.sku !== undefined && { sku: dto.sku }),
@@ -396,13 +406,17 @@ export class CatalogService {
         ...(dto.attributes !== undefined && { attributes: dto.attributes }),
       },
     });
+    await this.invalidateProductCache(productId);
+    return updated;
   }
 
   async updateVariantStock(variantId: string, stock: number) {
-    return this.prisma.productVariant.update({
+    const updated = await this.prisma.productVariant.update({
       where: { id: variantId },
       data: { stock },
     });
+    await this.invalidateProductCache(updated.productId);
+    return updated;
   }
 
   async getVariantById(variantId: string) {
@@ -420,6 +434,7 @@ export class CatalogService {
     });
     if (!variant) throw new NotFoundException('Variante no encontrada');
     await this.prisma.productVariant.delete({ where: { id: variantId } });
+    await this.invalidateProductCache(productId);
     return { message: 'Variante eliminada' };
   }
 }

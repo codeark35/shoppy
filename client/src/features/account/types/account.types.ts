@@ -32,3 +32,16 @@ export interface CreateAddressDto {
   zipCode?: string;
   isDefault?: boolean;
 }
+
+export interface UpdateAddressDto {
+  label?: string;
+  street?: string;
+  city?: string;
+  department?: string;
+  zipCode?: string;
+}
+
+export interface ChangePasswordDto {
+  currentPassword: string;
+  newPassword: string;
+}

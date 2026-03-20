@@ -7,6 +7,6 @@ export interface WishlistItem {
     name: string;
     slug: string;
     images: { url: string; alt: string | null }[];
-    variants: { price: number | string }[];
+    variants: { id: string; sku: string; price: number | string; attributes: Record<string, string> }[];
   };
 }

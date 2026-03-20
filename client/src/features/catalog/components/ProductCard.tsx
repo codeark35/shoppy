@@ -118,9 +118,9 @@ export function ProductCard({ product }: ProductCardProps) {
             <ShoppingCart size={15} /> Agregar al carrito
           </button>
         ) : (
-          <span className="badge bg-secondary w-100 d-block text-center py-2" style={{ borderRadius: 7 }}>
+          <button className="btn w-100 product-card__cta product-card__cta--out" disabled>
             Sin stock
-          </span>
+          </button>
         )}
       </div>
     </div>

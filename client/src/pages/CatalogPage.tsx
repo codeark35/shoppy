@@ -68,7 +68,7 @@ export function CatalogPage() {
   return (
     <>
       <AppNavbar />
-      <Container className="py-4 pb-5 mb-4">
+      <Container fluid="xl" className="py-4 pb-5 mb-4">
         {/* Barra de búsqueda + botón filtros */}
         <Row className="mb-3 align-items-center g-2">
           <Col>

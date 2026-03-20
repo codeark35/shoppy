@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, MinLength, IsNotEmpty } from 'class-validator';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -31,4 +31,37 @@ export class CreateAddressDto {
   @IsOptional()
   @IsBoolean()
   isDefault?: boolean;
+}
+
+export class UpdateAddressDto {
+  @IsOptional()
+  @IsString()
+  label?: string;
+
+  @IsOptional()
+  @IsString()
+  street?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  department?: string;
+
+  @IsOptional()
+  @IsString()
+  zipCode?: string;
+}
+
+export class ChangePasswordDto {
+  @IsNotEmpty()
+  @IsString()
+  currentPassword: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @MinLength(8)
+  newPassword: string;
 }

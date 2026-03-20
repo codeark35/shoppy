@@ -15,6 +15,7 @@ import { CheckoutResultPage } from '../pages/CheckoutResultPage';
 import { LoginPage } from '../pages/LoginPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { AdminLayout } from '../features/admin/layout/AdminLayout';
+import { ProtectedRoute } from '../shared/components/ProtectedRoute';
 
 const SearchPage         = lazy(() => import('../pages/SearchPage'));
 const AdminDashboardPage = lazy(() => import('../pages/AdminDashboardPage'));
@@ -29,6 +30,7 @@ const AdminAutomaticPromotionsPage  = lazy(() => import('../pages/AdminAutomatic
 const AdminAuditPage                = lazy(() => import('../pages/AdminAuditPage'));
 const AdminBannersPage              = lazy(() => import('../pages/AdminBannersPage'));
 const AdminAnalyticsPage            = lazy(() => import('../pages/AdminAnalyticsPage'));
+const WishlistPage                  = lazy(() => import('../pages/WishlistPage'));
 
 const PageLoader = () => (
   <div className="d-flex justify-content-center align-items-center py-5">
@@ -55,11 +57,12 @@ export function AppRouter() {
           <Route path="/productos" element={<CatalogPage />} />
           <Route path="/productos/:slug" element={<ProductPage />} />
           <Route path="/carrito" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/checkout/result" element={<CheckoutResultPage />} />
-          <Route path="/pedidos" element={<OrdersPage />} />
-          <Route path="/pedidos/:id" element={<OrderDetailPage />} />
-          <Route path="/cuenta" element={<AccountPage />} />
+          <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+          <Route path="/checkout/result" element={<ProtectedRoute><CheckoutResultPage /></ProtectedRoute>} />
+          <Route path="/pedidos" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+          <Route path="/pedidos/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
+          <Route path="/cuenta" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+          <Route path="/favoritos" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
           <Route path="/buscar" element={<SearchPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/registro" element={<RegisterPage />} />

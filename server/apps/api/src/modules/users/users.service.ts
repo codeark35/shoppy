@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@libs/prisma';
-import { UpdateProfileDto, CreateAddressDto } from './dto/users.dto';
+import * as bcrypt from 'bcrypt';
+import { UpdateProfileDto, CreateAddressDto, UpdateAddressDto, ChangePasswordDto } from './dto/users.dto';
 
 @Injectable()
 export class UsersService {
@@ -55,6 +56,36 @@ export class UsersService {
     return { message: 'Dirección eliminada' };
   }
 
+  async updateAddress(userId: string, addressId: string, dto: UpdateAddressDto) {
+    const address = await this.prisma.address.findFirst({
+      where: { id: addressId, userId },
+    });
+    if (!address) throw new NotFoundException('Dirección no encontrada');
+    return this.prisma.address.update({ where: { id: addressId }, data: dto });
+  }
+
+  async setDefaultAddress(userId: string, addressId: string) {
+    const address = await this.prisma.address.findFirst({
+      where: { id: addressId, userId },
+    });
+    if (!address) throw new NotFoundException('Dirección no encontrada');
+    await this.prisma.address.updateMany({ where: { userId }, data: { isDefault: false } });
+    return this.prisma.address.update({ where: { id: addressId }, data: { isDefault: true } });
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { passwordHash: true },
+    });
+    if (!user?.passwordHash) throw new BadRequestException('No se puede cambiar la contraseña de esta cuenta');
+    const valid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!valid) throw new BadRequestException('La contraseña actual es incorrecta');
+    const newHash = await bcrypt.hash(dto.newPassword, 12);
+    await this.prisma.user.update({ where: { id: userId }, data: { passwordHash: newHash } });
+    return { message: 'Contraseña actualizada correctamente' };
+  }
+
   // ─── Wishlist ────────────────────────────────────────────────────────────
 
   async getWishlist(userId: string) {
@@ -65,7 +96,11 @@ export class UsersService {
           select: {
             id: true, name: true, slug: true,
             images: { orderBy: { position: 'asc' }, take: 1 },
-            variants: { orderBy: { price: 'asc' }, take: 1 },
+            variants: {
+              orderBy: { price: 'asc' },
+              take: 1,
+              select: { id: true, sku: true, price: true, attributes: true, stock: true },
+            },
           },
         },
       },

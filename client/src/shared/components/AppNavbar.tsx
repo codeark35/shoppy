@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Collapse, Container } from 'react-bootstrap';
+import { Collapse, Container, Dropdown } from 'react-bootstrap';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
   ShoppingCart, Heart, User, LogOut, Package,
@@ -101,46 +101,38 @@ export function AppNavbar() {
 
               {/* Usuario — desktop */}
               {isAuthenticated ? (
-                <div className="dropdown d-none d-md-block">
-                  <button
+                <Dropdown align="end" className="d-none d-md-block">
+                  <Dropdown.Toggle
+                    as="button"
                     className="nav-action-btn"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
                     title={user?.name}
+                    bsPrefix=" "
                   >
                     <User size={20} />
-                  </button>
-                  <ul className="dropdown-menu dropdown-menu-end shadow">
-                    <li>
-                      <span className="dropdown-item-text fw-semibold text-dark">{user?.name}</span>
-                      <span className="dropdown-item-text small text-muted" style={{ paddingTop: 0 }}>{user?.email}</span>
-                    </li>
-                    <li><hr className="dropdown-divider" /></li>
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu className="shadow">
+                    <Dropdown.Header>
+                      <div className="fw-semibold text-dark">{user?.name}</div>
+                      <div className="small text-muted">{user?.email}</div>
+                    </Dropdown.Header>
+                    <Dropdown.Divider />
                     {user?.role === 'ADMIN' && (
-                      <li>
-                        <Link className="dropdown-item" to="/admin/dashboard">
-                          <BarChart2 size={15} className="me-2" />Dashboard admin
-                        </Link>
-                      </li>
+                      <Dropdown.Item as={Link} to="/admin/dashboard">
+                        <BarChart2 size={15} className="me-2" />Dashboard admin
+                      </Dropdown.Item>
                     )}
-                    <li>
-                      <Link className="dropdown-item" to="/pedidos">
-                        <Package size={15} className="me-2" />Mis pedidos
-                      </Link>
-                    </li>
-                    <li>
-                      <Link className="dropdown-item" to="/cuenta">
-                        <User size={15} className="me-2" />Mi cuenta
-                      </Link>
-                    </li>
-                    <li><hr className="dropdown-divider" /></li>
-                    <li>
-                      <button className="dropdown-item text-danger" onClick={handleLogout}>
-                        <LogOut size={15} className="me-2" />Cerrar sesión
-                      </button>
-                    </li>
-                  </ul>
-                </div>
+                    <Dropdown.Item as={Link} to="/pedidos">
+                      <Package size={15} className="me-2" />Mis pedidos
+                    </Dropdown.Item>
+                    <Dropdown.Item as={Link} to="/cuenta">
+                      <User size={15} className="me-2" />Mi cuenta
+                    </Dropdown.Item>
+                    <Dropdown.Divider />
+                    <Dropdown.Item onClick={handleLogout} className="text-danger">
+                      <LogOut size={15} className="me-2" />Cerrar sesión
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
               ) : (
                 <button
                   className="btn btn-primary btn-sm d-none d-md-flex align-items-center gap-1"
