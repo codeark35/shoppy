@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, FreeMode } from 'swiper/modules';
+import { Pagination, FreeMode } from 'swiper/modules';
 import { SectionTitle } from '../../../shared/components/SectionTitle';
 import { usePopularCategories } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useProducts';
@@ -16,8 +16,9 @@ function useMergedPopularCategories(limit = 10) {
 
   if (!popular.data) return { ...popular, data: undefined };
 
+  // Incluir subcategorías (children) en el mapa para que también obtengan su imageUrl
   const map = new Map<string, Category>(
-    (all.data ?? []).map((c) => [c.id, c]),
+    (all.data ?? []).flatMap((c) => [c, ...(c.children ?? [])]).map((c) => [c.id, c]),
   );
 
   const merged = popular.data
@@ -43,11 +44,10 @@ export function PopularCategoriesSection({ limit = 10 }: { limit?: number }) {
         <SectionTitle title="Categorías más buscadas" />
 
         <Swiper
-          modules={[Navigation, Pagination, FreeMode]}
+          modules={[Pagination, FreeMode]}
           spaceBetween={12}
           slidesPerView="auto"
           freeMode
-          navigation
           pagination={{ clickable: true, dynamicBullets: true }}
           className="popular-cats__swiper"
           breakpoints={{

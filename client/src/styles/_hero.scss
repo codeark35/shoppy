@@ -641,18 +641,7 @@
 
     .swiper-button-prev,
     .swiper-button-next {
-      width: 34px;
-      height: 34px;
-      background: #fff;
-      border-radius: 50%;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-      top: 38%;
-
-      &::after {
-        font-size: 13px;
-        font-weight: 900;
-        color: $color-primary;
-      }
+      display: none !important;
     }
 
     .swiper-pagination-bullet-active { background: $color-primary; }

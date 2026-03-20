@@ -90,7 +90,10 @@ export const useCreateProduct = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: CreateProductPayload) => adminService.createProduct(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'products'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'products'] });
+      qc.invalidateQueries({ queryKey: ['products'] });
+    },
   });
 };
 
@@ -99,7 +102,12 @@ export const useUpdateProduct = () => {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateProductPayload }) =>
       adminService.updateProduct(id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'products'] }),
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'products'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'product', id] });
+      qc.invalidateQueries({ queryKey: ['products'] });
+      qc.invalidateQueries({ queryKey: ['product'] }); // invalida todos los slugs
+    },
   });
 };
 
@@ -107,7 +115,11 @@ export const useDeleteProduct = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => adminService.deleteProduct(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'products'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'products'] });
+      qc.invalidateQueries({ queryKey: ['products'] });
+      qc.invalidateQueries({ queryKey: ['product'] });
+    },
   });
 };
 
@@ -116,7 +128,12 @@ export const useAddProductImage = () => {
   return useMutation({
     mutationFn: ({ productId, payload }: { productId: string; payload: AddProductImagePayload }) =>
       adminService.addProductImage(productId, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'products'] }),
+    onSuccess: (_data, { productId }) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'products'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'product', productId] });
+      qc.invalidateQueries({ queryKey: ['products'] });
+      qc.invalidateQueries({ queryKey: ['product'] });
+    },
   });
 };
 
@@ -125,7 +142,12 @@ export const useDeleteProductImage = () => {
   return useMutation({
     mutationFn: ({ productId, imageId }: { productId: string; imageId: string }) =>
       adminService.deleteProductImage(productId, imageId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'products'] }),
+    onSuccess: (_data, { productId }) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'products'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'product', productId] });
+      qc.invalidateQueries({ queryKey: ['products'] });
+      qc.invalidateQueries({ queryKey: ['product'] });
+    },
   });
 };
 
@@ -141,7 +163,11 @@ export const useAddVariant = () => {
   return useMutation({
     mutationFn: ({ productId, payload }: { productId: string; payload: CreateVariantPayload }) =>
       adminService.addVariant(productId, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'products'] }),
+    onSuccess: (_data, { productId }) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'products'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'product', productId] });
+      qc.invalidateQueries({ queryKey: ['product'] });
+    },
   });
 };
 
@@ -150,7 +176,11 @@ export const useUpdateVariant = () => {
   return useMutation({
     mutationFn: ({ productId, variantId, payload }: { productId: string; variantId: string; payload: UpdateVariantPayload }) =>
       adminService.updateVariant(productId, variantId, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'products'] }),
+    onSuccess: (_data, { productId }) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'products'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'product', productId] });
+      qc.invalidateQueries({ queryKey: ['product'] });
+    },
   });
 };
 
@@ -159,7 +189,11 @@ export const useDeleteVariant = () => {
   return useMutation({
     mutationFn: ({ productId, variantId }: { productId: string; variantId: string }) =>
       adminService.deleteVariant(productId, variantId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'products'] }),
+    onSuccess: (_data, { productId }) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'products'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'product', productId] });
+      qc.invalidateQueries({ queryKey: ['product'] });
+    },
   });
 };
 
@@ -177,7 +211,7 @@ export const useCreateCategory = () => {
     mutationFn: (payload: CreateCategoryPayload) => adminService.createCategory(payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'categories'] });
-      qc.invalidateQueries({ queryKey: ['catalog', 'categories'] });
+      qc.invalidateQueries({ queryKey: ['categories'] });
     },
   });
 };
@@ -189,7 +223,7 @@ export const useUpdateCategory = () => {
       adminService.updateCategory(id, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'categories'] });
-      qc.invalidateQueries({ queryKey: ['catalog', 'categories'] });
+      qc.invalidateQueries({ queryKey: ['categories'] });
     },
   });
 };
@@ -200,7 +234,7 @@ export const useDeleteCategory = () => {
     mutationFn: (id: string) => adminService.deleteCategory(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'categories'] });
-      qc.invalidateQueries({ queryKey: ['catalog', 'categories'] });
+      qc.invalidateQueries({ queryKey: ['categories'] });
     },
   });
 };
