@@ -85,6 +85,7 @@ export interface AdminProduct {
   name: string;
   slug: string;
   description: string;
+  details?: string;
   basePrice: number;
   isActive: boolean;
   isFeatured: boolean;
@@ -107,6 +108,7 @@ export type CreateProductPayload = {
   name: string;
   slug: string;
   description: string;
+  details?: string;
   basePrice: number;
   categoryId: string;
   isActive?: boolean;
@@ -273,3 +275,17 @@ export interface CreateBannerPayload {
 }
 
 export type UpdateBannerPayload = Partial<CreateBannerPayload>;
+
+// ── Imágenes Huérfanas ─────────────────────────────────────────────────────────
+
+export interface OrphanedImage {
+  key: string;
+  url: string;
+}
+
+export interface AssignImagePayload {
+  url: string;
+  productId: string;
+  alt?: string;
+  position?: number;
+}

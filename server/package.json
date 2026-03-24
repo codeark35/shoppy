@@ -23,7 +23,10 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "prisma:seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"
+    "prisma:seed": "ts-node -r tsconfig-paths/register prisma/seed.ts",
+    "prisma:backup": "ts-node -r tsconfig-paths/register prisma/backup-db.ts",
+    "prisma:restore": "ts-node -r tsconfig-paths/register prisma/restore-db.ts",
+    "prisma:r2-orphans": "ts-node -r tsconfig-paths/register prisma/list-r2-images.ts"
   },
   "prisma": {
     "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"
@@ -49,6 +52,7 @@
     "bullmq": "^5.34.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "firebase-admin": "^13.7.0",
     "ioredis": "^5.4.2",
     "meilisearch": "^0.55.0",
     "passport": "^0.7.0",

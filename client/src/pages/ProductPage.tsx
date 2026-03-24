@@ -177,7 +177,7 @@ export function ProductPage() {
             <Badge bg="secondary" className="mb-2">{product.category.name}</Badge>
             <h1 className="fs-3 fw-bold">{product.name}</h1>
             <p className="text-primary fs-4 fw-bold">{formatPrice(selectedVariant?.price ?? product.basePrice)}</p>
-            <p className="text-muted">{product.description}</p>
+            <p className="text-muted" style={{ whiteSpace: 'pre-wrap' }}>{product.description}</p>
 
             {product.variants.length > 0 && attrKeys.length > 0 && (
               <div className="mb-3">
@@ -226,6 +226,21 @@ export function ProductPage() {
             </Button>
           </Col>
         </Row>
+
+        {/* ── Detalles técnicos ─────────────────────────────────────────── */}
+        {product.details && (
+          <Row className="mt-4">
+            <Col xs={12}>
+              <h5 className="fw-bold mb-3">Detalles y especificaciones</h5>
+              <div
+                className="rte-content p-3 bg-light rounded border"
+                dangerouslySetInnerHTML={{ __html: product.details ?? '' }}
+                style={{ fontSize: '0.93rem', lineHeight: 1.7 }}
+              />
+            </Col>
+          </Row>
+        )}
+
       </Container>
       <AppFooter />
       <BottomNav />

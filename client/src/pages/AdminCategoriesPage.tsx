@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Badge, Button, Form, Modal, Alert, Spinner } from 'react-bootstrap';
-import { Plus, Edit2, Trash2, RefreshCw, ChevronRight, Star, Upload, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, RefreshCw, ChevronRight, Star, Upload, X, Images } from 'lucide-react';
 import {
   useAdminCategories,
   useCreateCategory,
@@ -9,6 +9,7 @@ import {
 } from '../features/admin';
 import { adminService } from '../features/admin/services/admin.service';
 import type { AdminCategory, CreateCategoryPayload } from '../features/admin';
+import { MediaGalleryPicker } from '../shared/components/MediaGalleryPicker';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -49,6 +50,7 @@ function CategoryModal({ category, allCategories, onHide }: CategoryModalProps) 
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadCoverError, setUploadCoverError] = useState('');
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const [showGallery, setShowGallery] = useState<'image' | 'cover' | null>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -182,7 +184,12 @@ function CategoryModal({ category, allCategories, onHide }: CategoryModalProps) 
             </div>
             <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="d-none" onChange={handleFileSelect} />
             {uploadError && <div className="text-danger" style={{ fontSize: '0.75rem' }}>{uploadError}</div>}
-            <Form.Control size="sm" className="mt-2" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="o pegar URL de imagen" />
+            <div className="d-flex align-items-center gap-2 mt-2">
+              <Form.Control size="sm" className="flex-grow-1" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="o pegar URL de imagen" />
+              <Button type="button" variant="outline-success" size="sm" className="d-flex align-items-center gap-1 text-nowrap" onClick={() => setShowGallery('image')}>
+                <Images size={13} /> Galería
+              </Button>
+            </div>
           </Form.Group>
 
           {/* Imagen de portada */}
@@ -208,7 +215,12 @@ function CategoryModal({ category, allCategories, onHide }: CategoryModalProps) 
             </div>
             <input ref={coverInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="d-none" onChange={handleCoverSelect} />
             {uploadCoverError && <div className="text-danger" style={{ fontSize: '0.75rem' }}>{uploadCoverError}</div>}
-            <Form.Control size="sm" className="mt-2" value={coverImageUrl} onChange={(e) => setCoverImageUrl(e.target.value)} placeholder="o pegar URL de portada" />
+            <div className="d-flex align-items-center gap-2 mt-2">
+              <Form.Control size="sm" className="flex-grow-1" value={coverImageUrl} onChange={(e) => setCoverImageUrl(e.target.value)} placeholder="o pegar URL de portada" />
+              <Button type="button" variant="outline-success" size="sm" className="d-flex align-items-center gap-1 text-nowrap" onClick={() => setShowGallery('cover')}>
+                <Images size={13} /> Galería
+              </Button>
+            </div>
           </Form.Group>
 
           {/* Destacada */}
@@ -243,6 +255,17 @@ function CategoryModal({ category, allCategories, onHide }: CategoryModalProps) 
           </Button>
         </Modal.Footer>
       </Form>
+
+      <MediaGalleryPicker
+        show={showGallery !== null}
+        onHide={() => setShowGallery(null)}
+        onSelect={([url]) => {
+          if (showGallery === 'image') setImageUrl(url);
+          else if (showGallery === 'cover') setCoverImageUrl(url);
+          setShowGallery(null);
+        }}
+        title={showGallery === 'cover' ? 'Seleccionar imagen de portada' : 'Seleccionar imagen de perfil'}
+      />
     </Modal>
   );
 }

@@ -5,7 +5,7 @@ import {
   Alert, Spinner, InputGroup,
 } from 'react-bootstrap';
 import {
-  ArrowLeft, Save, Plus, Trash2, Image, X, Package, Pencil,
+  ArrowLeft, Save, Plus, Trash2, Image, X, Package, Pencil, Images,
 } from 'lucide-react';
 import {
   useCreateProduct,
@@ -18,6 +18,8 @@ import {
   adminService,
 } from '../features/admin';
 import { formatPrice } from '../shared/utils/formatPrice';
+import { RichTextEditor } from '../shared/components/RichTextEditor';
+import { MediaGalleryPicker } from '../shared/components/MediaGalleryPicker';
 import type {
   AdminProduct,
   AdminProductImage,
@@ -78,6 +80,11 @@ export default function AdminProductFormPage() {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showGallery, setShowGallery] = useState(false);
+  // URLs de galería pendientes (modo crear, sin product.id aún)
+  const [pendingGalleryUrls, setPendingGalleryUrls] = useState<
+    Array<{ id: string; url: string }>
+  >();
 
   // ── Variantes ────────────────────────────────────────────────────────────────
   const [variants, setVariants] = useState<AdminProductVariant[]>([]);
@@ -132,6 +139,7 @@ export default function AdminProductFormPage() {
         name: product.name,
         slug: product.slug,
         description: product.description,
+        details: product.details,
         basePrice: product.basePrice,
         categoryId: product.category.id,
         isActive: product.isActive,
@@ -198,6 +206,30 @@ export default function AdminProductFormPage() {
       if (item) URL.revokeObjectURL(item.preview);
       return prev.filter((p) => p.id !== pendingId);
     });
+  };
+
+  const handleGallerySelect = async (urls: string[]) => {
+    setImageError(null);
+    if (isEdit && product) {
+      // Modo edición: registrar directamente en BD
+      setUploadingImages(true);
+      try {
+        for (const url of urls) {
+          const img = await adminService.addProductImage(product.id, { url });
+          setImages((prev) => [...prev, img]);
+        }
+      } catch {
+        setImageError('Error al asociar una o más imágenes.');
+      } finally {
+        setUploadingImages(false);
+      }
+    } else {
+      // Modo crear: guardar las URLs para asociarlas al submit
+      setPendingGalleryUrls((prev) => [
+        ...(prev ?? []),
+        ...urls.map((url) => ({ id: `g-${Date.now()}-${Math.random()}`, url })),
+      ]);
+    }
   };
 
   // ── Variantes ────────────────────────────────────────────────────────────────
@@ -285,6 +317,9 @@ export default function AdminProductFormPage() {
             alt: pending.alt || undefined,
           });
           URL.revokeObjectURL(pending.preview);
+        }
+        for (const gallery of pendingGalleryUrls ?? []) {
+          await adminService.addProductImage(created.id, { url: gallery.url });
         }
       }
       navigate('/admin/productos');
@@ -407,12 +442,25 @@ export default function AdminProductFormPage() {
                   </Form.Label>
                   <Form.Control
                     as="textarea"
-                    rows={6}
+                    rows={5}
                     value={form.description}
                     onChange={(e) => set({ description: e.target.value })}
                     required
-                    placeholder="Descripción completa del producto, características, materiales, medidas…"
+                    placeholder="Resumen breve del producto (se muestra en la ficha y tarjetas)…"
+                    style={{ whiteSpace: 'pre-wrap' }}
                   />
+                  <Form.Text className="text-muted">Los saltos de línea se conservarán al mostrar el producto.</Form.Text>
+                </Form.Group>
+
+                <Form.Group className="mt-3">
+                  <Form.Label className="fw-medium small">Detalles técnicos / especificaciones</Form.Label>
+                  <RichTextEditor
+                    value={form.details ?? ''}
+                    onChange={(html) => set({ details: html })}
+                    placeholder="Especificaciones técnicas, materiales, dimensiones, instrucciones…"
+                    minHeight={280}
+                  />
+                  <Form.Text className="text-muted">Se mostrará en una sección separada en la página del producto.</Form.Text>
                 </Form.Group>
 
               </Card.Body>
@@ -433,7 +481,7 @@ export default function AdminProductFormPage() {
                 )}
 
                 {/* Grid de imágenes */}
-                {(images.length > 0 || pendingFiles.length > 0) && (
+                {(images.length > 0 || pendingFiles.length > 0 || (pendingGalleryUrls ?? []).length > 0) && (
                   <div className="d-flex flex-wrap gap-3 mb-3">
                     {images.map((img, i) => (
                       <div key={img.id} className="position-relative">
@@ -516,6 +564,48 @@ export default function AdminProductFormPage() {
                         </button>
                       </div>
                     ))}
+
+                    {/* URLs de galería pendientes (solo modo crear) */}
+                    {(pendingGalleryUrls ?? []).map((g) => (
+                      <div key={g.id} className="position-relative">
+                        <div
+                          style={{
+                            width: 100, height: 100, borderRadius: 8, overflow: 'hidden',
+                            border: '2px dashed #198754', background: '#f0fff4',
+                          }}
+                        >
+                          <img
+                            src={g.url}
+                            alt={g.url}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        </div>
+                        <Badge
+                          bg="success"
+                          className="position-absolute"
+                          style={{ bottom: 4, left: 4, fontSize: '0.6rem' }}
+                        >
+                          galería
+                        </Badge>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPendingGalleryUrls((prev) =>
+                              (prev ?? []).filter((x) => x.id !== g.id),
+                            )
+                          }
+                          className="position-absolute d-flex align-items-center justify-content-center"
+                          style={{
+                            top: 4, right: 4, width: 22, height: 22, padding: 0,
+                            background: 'rgba(220,53,69,0.85)', border: 'none',
+                            borderRadius: 5, cursor: 'pointer',
+                          }}
+                          title="Quitar"
+                        >
+                          <X size={12} color="#fff" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
 
@@ -527,26 +617,45 @@ export default function AdminProductFormPage() {
                   style={{ display: 'none' }}
                   onChange={handleFileSelect}
                 />
-                <Button
-                  type="button"
-                  variant="outline-primary"
-                  size="sm"
-                  className="d-flex align-items-center gap-2"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadingImages}
-                >
-                  {uploadingImages
-                    ? <><Spinner size="sm" /> Subiendo…</>
-                    : <><Image size={14} /> Subir imágenes</>}
-                </Button>
+                <div className="d-flex align-items-center gap-2 flex-wrap">
+                  <Button
+                    type="button"
+                    variant="outline-primary"
+                    size="sm"
+                    className="d-flex align-items-center gap-2"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingImages}
+                  >
+                    {uploadingImages
+                      ? <><Spinner size="sm" /> Subiendo…</>
+                      : <><Image size={14} /> Subir imágenes</>}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline-success"
+                    size="sm"
+                    className="d-flex align-items-center gap-2"
+                    onClick={() => setShowGallery(true)}
+                    disabled={uploadingImages}
+                  >
+                    <Images size={14} /> Desde galería
+                  </Button>
+                </div>
                 <div className="text-muted mt-2" style={{ fontSize: '0.75rem' }}>
                   JPG, PNG, WebP o GIF · máx. 5 MB por archivo · La primera imagen es la principal
-                  {!isEdit && pendingFiles.length > 0 && (
+                  {!isEdit && (pendingFiles.length > 0 || (pendingGalleryUrls ?? []).length > 0) && (
                     <strong className="text-primary ms-1">
-                      · {pendingFiles.length} archivo{pendingFiles.length > 1 ? 's' : ''} listo{pendingFiles.length > 1 ? 's' : ''}
+                      · {pendingFiles.length + (pendingGalleryUrls ?? []).length} imagen{(pendingFiles.length + (pendingGalleryUrls ?? []).length) > 1 ? 'es' : ''} lista{(pendingFiles.length + (pendingGalleryUrls ?? []).length) > 1 ? 's' : ''}
                     </strong>
                   )}
                 </div>
+
+                <MediaGalleryPicker
+                  show={showGallery}
+                  onHide={() => setShowGallery(false)}
+                  onSelect={handleGallerySelect}
+                  multiple
+                />
               </Card.Body>
             </Card>
 

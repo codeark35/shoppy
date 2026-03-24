@@ -210,7 +210,7 @@ export function AppNavbar() {
 
               {/* Mega-menú desplegable */}
               {megaOpen && (
-                <div className="mega-menu mr-4" role="dialog" aria-label="Todas las categorías">
+                <div className="mega-menu" role="dialog" aria-label="Todas las categorías">
                   <div className="mega-menu__grid">
                     {rootCategories.map((cat) => (
                       <div key={cat.id} className="mega-menu__group">
@@ -244,6 +244,7 @@ export function AppNavbar() {
             </div>
 
             {/* Accesos rápidos */}
+            
             <NavLink to="/" end className="nav-link">Inicio</NavLink>
             <Link to="/productos?onSale=true" className="nav-link nav-link--offers">
               <Tag size={13} className="me-1" />Ofertas

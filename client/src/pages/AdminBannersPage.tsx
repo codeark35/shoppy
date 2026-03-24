@@ -3,7 +3,7 @@ import {
   Container, Table, Badge, Button, Modal, Form,
   Row, Col, Spinner, Alert,
 } from 'react-bootstrap';
-import { Plus, Pencil, Trash2, Image, ToggleLeft, ToggleRight, Upload, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Image, ToggleLeft, ToggleRight, Upload, X, Images } from 'lucide-react';
 import { adminService } from '../features/admin/services/admin.service';
 import {
   useAdminBanners,
@@ -13,6 +13,7 @@ import {
   useDeleteBanner,
 } from '../features/admin/hooks/useAdmin';
 import type { AdminBanner, CreateBannerPayload, BannerType } from '../features/admin/types/admin.types';
+import { MediaGalleryPicker } from '../shared/components/MediaGalleryPicker';
 
 // ── Formulario ────────────────────────────────────────────────────────────────
 
@@ -69,6 +70,7 @@ function BannerModal({ show, onHide, editing }: BannerModalProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showGallery, setShowGallery] = useState(false);
 
   const createBanner = useCreateBanner();
   const updateBanner = useUpdateBanner();
@@ -204,6 +206,18 @@ function BannerModal({ show, onHide, editing }: BannerModalProps) {
 
             {uploadError && <div className="text-danger small mt-1">{uploadError}</div>}
 
+            {/* Botón galería R2 */}
+            <Button
+              type="button"
+              variant="outline-success"
+              size="sm"
+              className="mt-2 d-flex align-items-center gap-2"
+              onClick={() => setShowGallery(true)}
+              disabled={uploading}
+            >
+              <Images size={14} /> Desde galería
+            </Button>
+
             {/* Fallback: pegar URL manualmente */}
             <div className="mt-2 d-flex align-items-center gap-2">
               <span className="text-muted small text-nowrap">o pegar URL:</span>
@@ -275,6 +289,13 @@ function BannerModal({ show, onHide, editing }: BannerModalProps) {
           {isBusy ? <Spinner size="sm" /> : editing ? 'Guardar cambios' : 'Crear banner'}
         </Button>
       </Modal.Footer>
+
+      <MediaGalleryPicker
+        show={showGallery}
+        onHide={() => setShowGallery(false)}
+        onSelect={([url]) => set('imageUrl', url)}
+        title="Seleccionar imagen para el banner"
+      />
     </Modal>
   );
 }

@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   Delete,
   Param,
@@ -71,5 +72,15 @@ export class MediaController {
   async deleteImage(@Param('key') encodedKey: string) {
     const key = Buffer.from(encodedKey, 'base64url').toString('utf8');
     await this.mediaService.deleteImage(key);
+  }
+
+  /**
+   * GET /media/gallery
+   * Devuelve todos los objetos del bucket R2 (key, url, size, lastModified).
+   * Ordenados del más reciente al más antiguo.
+   */
+  @Get('gallery')
+  getGallery() {
+    return this.mediaService.listAll();
   }
 }

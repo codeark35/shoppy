@@ -652,3 +652,82 @@ html {
     }
   }
 }
+
+// ── Rich Text Editor (Tiptap) ─────────────────────────────────────────────────
+.rte-wrapper {
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+
+  &:focus-within {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+}
+
+.rte-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.rte-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #495057;
+  padding: 0;
+  transition: background 0.12s, color 0.12s;
+
+  &:hover:not(:disabled) { background: #e2e6ea; }
+  &--active { background: #d0e4ff; color: #0d6efd; font-weight: 600; }
+  &:disabled { opacity: 0.35; cursor: default; }
+}
+
+.rte-divider {
+  width: 1px;
+  height: 20px;
+  background: #dee2e6;
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.rte-content {
+  padding: 12px 14px;
+  outline: none;
+  line-height: 1.7;
+  font-size: 0.93rem;
+  color: #212529;
+
+  &:empty::before {
+    content: attr(data-placeholder);
+    color: #adb5bd;
+    pointer-events: none;
+  }
+
+  h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+  h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.4rem; }
+  h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.3rem; }
+
+  p { margin-bottom: 0.5rem; }
+  ul, ol { padding-left: 1.5rem; margin-bottom: 0.5rem; }
+  li { margin-bottom: 0.2rem; }
+  hr { border-color: #dee2e6; margin: 1rem 0; }
+  a { color: #0d6efd; text-decoration: underline; }
+
+  strong { font-weight: 700; }
+  em { font-style: italic; }
+  u { text-decoration: underline; }
+  s { text-decoration: line-through; }
+}

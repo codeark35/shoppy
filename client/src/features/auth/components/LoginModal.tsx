@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Form, Button, Alert, Tab, Nav } from 'react-bootstrap';
 import { useAuth } from '../hooks/useAuth';
+import { GoogleSignInButton } from './GoogleSignInButton';
 
 interface LoginModalProps {
   show: boolean;
@@ -59,6 +60,10 @@ export function LoginModal({ show, onHide }: LoginModalProps) {
 
           <Tab.Content>
             <Tab.Pane eventKey="login">
+              <GoogleSignInButton onSuccess={onHide} className="mb-3" />
+              <div className="auth-divider">
+                <span>o continuá con email</span>
+              </div>
               <Form onSubmit={handleLogin}>
                 <Form.Group className="mb-3">
                   <Form.Label>Email</Form.Label>
@@ -85,6 +90,10 @@ export function LoginModal({ show, onHide }: LoginModalProps) {
             </Tab.Pane>
 
             <Tab.Pane eventKey="register">
+              <GoogleSignInButton onSuccess={onHide} className="mb-3" />
+              <div className="auth-divider">
+                <span>o registrate con email</span>
+              </div>
               <Form onSubmit={handleRegister}>
                 <Form.Group className="mb-3">
                   <Form.Label>Nombre completo</Form.Label>

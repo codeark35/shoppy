@@ -5,6 +5,7 @@ import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { useAuthStore } from '../features/auth/store/authStore';
 import { AuthPageLayout } from '../features/auth/components/AuthPageLayout';
+import { GoogleSignInButton } from '../features/auth/components/GoogleSignInButton';
 
 // ── Indicador de fortaleza ────────────────────────────────────────────────────
 function getStrength(pwd: string): number {
@@ -70,6 +71,11 @@ export function RegisterPage() {
             {error}
           </Alert>
         )}
+
+        <GoogleSignInButton onSuccess={() => navigate('/', { replace: true })} className="mb-3" />
+        <div className="auth-divider">
+          <span>o registrate con email</span>
+        </div>
 
         <Form onSubmit={handleSubmit} noValidate>
           {/* Nombre */}

@@ -4,6 +4,7 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  ListObjectsV2Command,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
@@ -102,5 +103,36 @@ export class MediaService {
         Key: key,
       }),
     );
+  }
+
+  /**
+   * Lista todos los objetos en el bucket R2 con metadata básica.
+   */
+  async listAll(): Promise<Array<{ key: string; url: string; size: number; lastModified: string }>> {
+    const items: Array<{ key: string; url: string; size: number; lastModified: string }> = [];
+    let continuationToken: string | undefined;
+
+    do {
+      const res = await this.s3.send(
+        new ListObjectsV2Command({
+          Bucket: this.bucket,
+          ContinuationToken: continuationToken,
+        }),
+      );
+      res.Contents?.forEach((obj) => {
+        if (obj.Key) {
+          items.push({
+            key: obj.Key,
+            url: `${this.publicUrl}/${obj.Key}`,
+            size: obj.Size ?? 0,
+            lastModified: obj.LastModified?.toISOString() ?? '',
+          });
+        }
+      });
+      continuationToken = res.IsTruncated ? res.NextContinuationToken : undefined;
+    } while (continuationToken);
+
+    // Más recientes primero
+    return items.sort((a, b) => b.lastModified.localeCompare(a.lastModified));
   }
 }

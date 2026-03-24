@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { signInWithPopup } from 'firebase/auth';
+import { firebaseAuth, googleProvider } from '../../../shared/lib/firebase';
 import { authService } from '../services/auth.service';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../../cart/store/cartStore';
@@ -27,6 +29,19 @@ export function useAuth() {
     },
   });
 
+  const googleMutation = useMutation({
+    mutationFn: async () => {
+      const credential = await signInWithPopup(firebaseAuth, googleProvider);
+      const idToken = await credential.user.getIdToken();
+      return authService.loginWithGoogle(idToken);
+    },
+    onSuccess: async (data) => {
+      setAuth(data.user, data.accessToken);
+      await mergeCart();
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+  });
+
   const logoutMutation = useMutation({
     mutationFn: () => authService.logout(),
     onSuccess: () => {
@@ -45,8 +60,11 @@ export function useAuth() {
     isAuthenticated,
     login: loginMutation.mutateAsync,
     register: registerMutation.mutateAsync,
+    loginWithGoogle: googleMutation.mutateAsync,
     logout: logoutMutation.mutate,
     isLoggingIn: loginMutation.isPending,
     isRegistering: registerMutation.isPending,
+    isGoogleLoading: googleMutation.isPending,
+    googleError: googleMutation.error,
   };
 }

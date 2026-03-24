@@ -54,6 +54,8 @@ model User {
   id               String             @id @default(cuid())
   email            String             @unique
   passwordHash     String?
+  googleId         String?            @unique
+  avatarUrl        String?
   name             String
   phone            String?
   role             Role               @default(CUSTOMER)
@@ -102,6 +104,7 @@ model Product {
   slug        String           @unique
   name        String
   description String
+  details     String?
   basePrice   Decimal          @db.Decimal(10, 2)
   images      ProductImage[]
   variants    ProductVariant[]

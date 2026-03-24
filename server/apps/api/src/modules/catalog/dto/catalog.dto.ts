@@ -127,6 +127,10 @@ export class CreateProductDto {
   @IsString()
   description: string;
 
+  @IsOptional()
+  @IsString()
+  details?: string;
+
   @IsNumber()
   @IsPositive()
   basePrice: number;
@@ -161,6 +165,10 @@ export class UpdateProductDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsString()
+  details?: string;
 
   @IsOptional()
   @IsNumber()

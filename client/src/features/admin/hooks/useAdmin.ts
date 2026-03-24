@@ -16,6 +16,7 @@ import type {
   PromotionListQuery,
   CreateBannerPayload,
   UpdateBannerPayload,
+  AssignImagePayload,
 } from '../types/admin.types';
 import type { OrderStatus } from '../../orders/types/orders.types';
 import type { AnalyticsQuery } from '../../analytics/types/analytics.types';
@@ -407,3 +408,24 @@ export const useAnalyticsFunnel = (params?: AnalyticsQuery) =>
     queryFn: () => adminService.getAnalyticsFunnel(params),
     staleTime: 2 * 60 * 1000,
   });
+
+// ── Imágenes Huérfanas ────────────────────────────────────────────────────────
+
+export const useOrphanedImages = () =>
+  useQuery({
+    queryKey: ['admin', 'orphaned-images'],
+    queryFn: () => adminService.getOrphanedImages(),
+  });
+
+export const useAssignOrphanedImage = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: AssignImagePayload) => adminService.assignOrphanedImage(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'orphaned-images'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'products'] });
+      qc.invalidateQueries({ queryKey: ['products'] });
+      qc.invalidateQueries({ queryKey: ['product'] });
+    },
+  });
+};

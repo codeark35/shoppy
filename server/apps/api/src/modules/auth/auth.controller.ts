@@ -14,6 +14,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { GoogleAuthDto } from './dto/google-auth.dto';
 import { JwtAuthGuard, CurrentUser } from '@libs/common';
 
 const REFRESH_COOKIE_OPTIONS = {
@@ -83,5 +84,18 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async getProfile(@CurrentUser('id') userId: string) {
     return this.authService.getProfile(userId);
+  }
+
+  // POST /auth/google — recibe el idToken de Firebase y devuelve JWT propio
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 10, ttl: 60000 } })
+  async loginWithGoogle(
+    @Body() dto: GoogleAuthDto,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ) {
+    const { user, accessToken, refreshToken } = await this.authService.loginWithGoogle(dto.idToken);
+    reply.setCookie('refresh_token', refreshToken, REFRESH_COOKIE_OPTIONS);
+    return { user, accessToken };
   }
 }

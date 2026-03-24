@@ -1,11 +1,31 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@libs/prisma';
 import { OrderStatus, Role } from '@prisma/client';
 import { AdminOrderQueryDto } from './dto/admin.dto';
+import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly r2: S3Client;
+  private readonly bucket: string;
+  private readonly publicUrl: string;
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
+  ) {
+    this.r2 = new S3Client({
+      region: 'auto',
+      endpoint: `https://${config.getOrThrow<string>('R2_ACCOUNT_ID')}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: config.getOrThrow<string>('R2_ACCESS_KEY_ID'),
+        secretAccessKey: config.getOrThrow<string>('R2_SECRET_ACCESS_KEY'),
+      },
+    });
+    this.bucket = config.getOrThrow<string>('R2_BUCKET_NAME');
+    this.publicUrl = config.getOrThrow<string>('R2_PUBLIC_URL').replace(/\/$/, '');
+  }
 
   // ─── Dashboard ────────────────────────────────────────────────────────────────
 
@@ -165,6 +185,62 @@ export class AdminService {
       where: { id: userId },
       data: { role },
       select: { id: true, email: true, role: true },
+    });
+  }
+
+  // ─── Imágenes Huérfanas ───────────────────────────────────────────────────────
+
+  async getOrphanedImages(): Promise<{ url: string; key: string }[]> {
+    // 1. Listar todos los objetos en R2
+    const r2Keys: string[] = [];
+    let continuationToken: string | undefined;
+    do {
+      const res = await this.r2.send(
+        new ListObjectsV2Command({
+          Bucket: this.bucket,
+          ContinuationToken: continuationToken,
+        }),
+      );
+      res.Contents?.forEach((obj) => { if (obj.Key) r2Keys.push(obj.Key); });
+      continuationToken = res.IsTruncated ? res.NextContinuationToken : undefined;
+    } while (continuationToken);
+
+    // 2. Obtener URLs registradas en la BD
+    const dbImages = await this.prisma.productImage.findMany({
+      select: { url: true },
+    });
+
+    const usedKeys = new Set(
+      dbImages.map((img) => {
+        try { return new URL(img.url).pathname.replace(/^\//, ''); }
+        catch { return null; }
+      }).filter(Boolean) as string[],
+    );
+
+    // 3. Filtrar las que no tienen registro
+    return r2Keys
+      .filter((key) => !usedKeys.has(key))
+      .map((key) => ({ key, url: `${this.publicUrl}/${key}` }));
+  }
+
+  async assignOrphanedImage(
+    url: string,
+    productId: string,
+    alt?: string,
+    position?: number,
+  ) {
+    // Verificar que el producto exista
+    const product = await this.prisma.product.findUnique({ where: { id: productId } });
+    if (!product) throw new NotFoundException('Producto no encontrado');
+
+    const maxPosition = await this.prisma.productImage.count({ where: { productId } });
+    return this.prisma.productImage.create({
+      data: {
+        productId,
+        url,
+        alt: alt ?? product.name,
+        position: position ?? maxPosition,
+      },
     });
   }
 }

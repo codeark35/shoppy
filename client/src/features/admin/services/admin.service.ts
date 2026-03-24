@@ -26,6 +26,8 @@ import type {
   AdminBanner,
   CreateBannerPayload,
   UpdateBannerPayload,
+  OrphanedImage,
+  AssignImagePayload,
 } from '../types/admin.types';
 import type { OrderStatus } from '../../orders/types/orders.types';
 import type {
@@ -242,4 +244,11 @@ export const adminService = {
 
   getAnalyticsFunnel: (params?: AnalyticsQuery) =>
     api.get<FunnelStep[]>('/analytics/funnel', { params }).then((r) => r.data),
+
+  // ── Imágenes Huérfanas ────────────────────────────────────────────────────────
+  getOrphanedImages: () =>
+    api.get<OrphanedImage[]>('/admin/media/orphaned').then((r) => r.data),
+
+  assignOrphanedImage: (payload: AssignImagePayload) =>
+    api.post<AdminProductImage>('/admin/media/assign', payload).then((r) => r.data),
 };

@@ -30,6 +30,7 @@ const AdminAutomaticPromotionsPage  = lazy(() => import('../pages/AdminAutomatic
 const AdminAuditPage                = lazy(() => import('../pages/AdminAuditPage'));
 const AdminBannersPage              = lazy(() => import('../pages/AdminBannersPage'));
 const AdminAnalyticsPage            = lazy(() => import('../pages/AdminAnalyticsPage'));
+const AdminOrphanedImagesPage       = lazy(() => import('../pages/AdminOrphanedImagesPage'));
 const WishlistPage                  = lazy(() => import('../pages/WishlistPage'));
 
 const PageLoader = () => (
@@ -83,6 +84,7 @@ export function AppRouter() {
             <Route path="promociones"           element={<AdminPromotionsPage />} />
             <Route path="promociones-automaticas" element={<AdminAutomaticPromotionsPage />} />
             <Route path="auditoria"             element={<AdminAuditPage />} />
+            <Route path="imagenes-huerfanas"    element={<AdminOrphanedImagesPage />} />
           </Route>
         </Routes>
       </Suspense>

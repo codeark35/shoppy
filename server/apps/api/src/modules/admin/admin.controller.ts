@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
   Param,
   Body,
@@ -81,5 +82,25 @@ export class AdminController {
     @Body() body: { role: Role },
   ) {
     return this.adminService.updateUserRole(userId, body.role);
+  }
+
+  // ─── Imágenes Huérfanas ────────────────────────────────────────────────────────
+
+  @Get('media/orphaned')
+  getOrphanedImages() {
+    return this.adminService.getOrphanedImages();
+  }
+
+  @Post('media/assign')
+  @HttpCode(HttpStatus.CREATED)
+  assignOrphanedImage(
+    @Body() body: { url: string; productId: string; alt?: string; position?: number },
+  ) {
+    return this.adminService.assignOrphanedImage(
+      body.url,
+      body.productId,
+      body.alt,
+      body.position,
+    );
   }
 }

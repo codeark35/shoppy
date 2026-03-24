@@ -5,6 +5,7 @@ import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { useAuthStore } from '../features/auth/store/authStore';
 import { AuthPageLayout } from '../features/auth/components/AuthPageLayout';
+import { GoogleSignInButton } from '../features/auth/components/GoogleSignInButton';
 
 export function LoginPage() {
   const { login, isLoggingIn } = useAuth();
@@ -51,6 +52,11 @@ export function LoginPage() {
             {error}
           </Alert>
         )}
+
+        <GoogleSignInButton onSuccess={() => navigate(from, { replace: true })} className="mb-3" />
+        <div className="auth-divider">
+          <span>o continuá con email</span>
+        </div>
 
         <Form onSubmit={handleSubmit} noValidate>
           {/* Email */}

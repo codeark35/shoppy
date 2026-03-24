@@ -30,6 +30,7 @@ export interface Product {
   slug: string;
   name: string;
   description: string;
+  details?: string;
   basePrice: number;
   category: Pick<Category, 'id' | 'name' | 'slug'>;
   images: ProductImage[];

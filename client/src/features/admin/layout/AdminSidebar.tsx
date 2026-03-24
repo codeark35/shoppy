@@ -67,6 +67,7 @@ const NAV_SECTIONS: NavSection[] = [
     section: 'Gestión',
     items: [
       { to: '/admin/usuarios', icon: Users, label: 'Usuarios', roles: ['ADMIN'] },
+      { to: '/admin/imagenes-huerfanas', icon: Image, label: 'Imgs. Huérfanas', roles: ['ADMIN'] },
       { to: '/admin/auditoria', icon: FileSearch, label: 'Auditoría', roles: ['ADMIN'] },
     ],
   },

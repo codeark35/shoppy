@@ -29,6 +29,8 @@ export {
   useUpdatePromotion,
   useTogglePromotion,
   useDeletePromotion,
+  useOrphanedImages,
+  useAssignOrphanedImage,
 } from './hooks/useAdmin';
 export type {
   AdminOrder,
@@ -56,4 +58,6 @@ export type {
   UpdatePromotionPayload,
   PromotionListQuery,
   PromotionScope,
+  OrphanedImage,
+  AssignImagePayload,
 } from './types/admin.types';

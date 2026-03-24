@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@libs/prisma';
+import { FirebaseService } from '../firebase/firebase.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
@@ -19,6 +20,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    private readonly firebase: FirebaseService,
   ) {}
 
   // ─── Registro ────────────────────────────────────────────────────────────────
@@ -78,6 +80,46 @@ export class AuthService {
 
     const tokens = this.generateTokens(user.id, user.email, user.role);
     return tokens;
+  }
+
+  // ─── Login con Google (Firebase) ───────────────────────────────────────────
+  async loginWithGoogle(idToken: string) {
+    const decoded = await this.firebase.verifyIdToken(idToken);
+
+    const { uid: googleId, email, name: googleName, picture: avatarUrl } = decoded;
+
+    if (!email) {
+      throw new UnauthorizedException('La cuenta de Google no tiene email asociado');
+    }
+
+    // Buscar por googleId primero, luego por email (para vincular cuentas existentes)
+    let user = await this.prisma.user.findFirst({
+      where: { OR: [{ googleId }, { email: email.toLowerCase() }] },
+    });
+
+    if (user) {
+      // Vincular googleId si llegó por email y aún no tiene googleId
+      if (!user.googleId) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { googleId, avatarUrl: avatarUrl ?? user.avatarUrl },
+        });
+      }
+    } else {
+      // Crear usuario nuevo
+      user = await this.prisma.user.create({
+        data: {
+          email: email.toLowerCase(),
+          name: googleName ?? email.split('@')[0],
+          googleId,
+          avatarUrl,
+        },
+      });
+    }
+
+    const tokens = this.generateTokens(user.id, user.email, user.role);
+    const { passwordHash: _, ...safeUser } = user;
+    return { user: safeUser, ...tokens };
   }
 
   // ─── Obtener perfil ───────────────────────────────────────────────────────────
