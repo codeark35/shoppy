@@ -74,6 +74,31 @@ export class CatalogService {
     return { message: 'Categoría eliminada' };
   }
 
+  // ─── Variantes: imágenes por IDs (para enriquecer carrito) ─────────────────
+
+  async getVariantImages(variantIds: string[]) {
+    if (!variantIds.length) return [];
+    const variants = await this.prisma.productVariant.findMany({
+      where: { id: { in: variantIds } },
+      select: {
+        id: true,
+        product: {
+          select: {
+            images: {
+              orderBy: { position: 'asc' },
+              take: 1,
+              select: { url: true },
+            },
+          },
+        },
+      },
+    });
+    return variants.map((v) => ({
+      variantId: v.id,
+      imageUrl: v.product.images[0]?.url ?? null,
+    }));
+  }
+
   // ─── Productos ────────────────────────────────────────────────────────────────
 
   async getProducts(query: ProductQueryDto) {

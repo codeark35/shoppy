@@ -65,12 +65,16 @@ api.interceptors.response.use(
         processQueue(null, newToken);
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
-      } catch (refreshError) {
+      } catch (refreshError: unknown) {
         processQueue(refreshError, null);
-        // Limpiar estado y redirigir a inicio (no a /login que no existe)
-        useAuthStore.getState().clearAuth();
-        if (window.location.pathname !== '/') {
-          window.location.href = '/';
+        const status = (refreshError as { response?: { status?: number } }).response?.status;
+        // Solo limpiar la sesión cuando el servidor confirma que el token es inválido (401/403).
+        // En errores de red (sin .response), mantener el estado para no perder datos del usuario.
+        if (status === 401 || status === 403) {
+          useAuthStore.getState().clearAuth();
+          if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+            window.location.href = '/';
+          }
         }
         return Promise.reject(refreshError);
       } finally {

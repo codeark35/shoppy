@@ -6,7 +6,6 @@ import {
   BarChart2, Menu, X, Truck, Phone, ChevronDown, Tag, Sparkles, Star, Zap,
 } from 'lucide-react';
 import { CartDrawer } from '../../features/cart/components/CartDrawer';
-import { LoginModal } from '../../features/auth/components/LoginModal';
 import { useAuthStore } from '../../features/auth/store/authStore';
 import { useCartStore } from '../../features/cart/store/cartStore';
 import { authService } from '../../features/auth/services/auth.service';
@@ -16,7 +15,6 @@ import { useCategories } from '../../features/catalog/hooks/useProducts';
 export function AppNavbar() {
   const { user, isAuthenticated, clearAuth } = useAuthStore();
   const { cart, openCart } = useCartStore();
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -137,7 +135,7 @@ export function AppNavbar() {
                 <button
                   className="btn btn-primary btn-sm d-none d-md-flex align-items-center gap-1"
                   style={{ borderRadius: 'var(--radius-pill)', fontSize: '0.82rem', padding: '7px 16px' }}
-                  onClick={() => setShowLoginModal(true)}
+                  onClick={() => navigate('/login')}
                 >
                   <User size={15} /> Ingresar
                 </button>
@@ -181,7 +179,7 @@ export function AppNavbar() {
                     </button>
                   </>
                 ) : (
-                  <button onClick={() => { setShowLoginModal(true); setMenuOpen(false); }}>
+                  <button onClick={() => { navigate('/login'); setMenuOpen(false); }}>
                     Iniciar sesión
                   </button>
                 )}
@@ -263,7 +261,6 @@ export function AppNavbar() {
       </div>
 
       <CartDrawer />
-      <LoginModal show={showLoginModal} onHide={() => setShowLoginModal(false)} />
     </>
   );
 }

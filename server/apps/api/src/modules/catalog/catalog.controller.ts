@@ -54,6 +54,12 @@ export class CatalogController {
   getProducts(@Query() query: ProductQueryDto) {
     return this.catalogService.getProducts(query);
   }
+
+  @Get('variant-images')
+  getVariantImages(@Query('ids') ids: string) {
+    const variantIds = (ids ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+    return this.catalogService.getVariantImages(variantIds);
+  }
   // IMPORTANT: must be declared BEFORE products/:slug to avoid 'id' matching the slug param
   @Get('products/id/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)

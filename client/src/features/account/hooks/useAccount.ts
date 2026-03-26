@@ -13,7 +13,11 @@ export function useUpdateProfile() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (dto: UpdateProfileDto) => accountService.updateProfile(dto),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile'] }),
+    onSuccess: (updatedProfile) => {
+      // Actualizar el cache directamente con la respuesta del servidor
+      // para que los datos sean visibles inmediatamente sin necesidad de refetch
+      queryClient.setQueryData(['profile'], updatedProfile);
+    },
   });
 }
 

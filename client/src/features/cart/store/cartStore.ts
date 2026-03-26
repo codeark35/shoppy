@@ -44,7 +44,12 @@ export const useCartStore = create<CartStoreState>()(
         if (existing) {
           newItems = cart.items.map((i) =>
             i.variantId === item.variantId
-              ? { ...i, quantity: i.quantity + item.quantity }
+              ? {
+                  ...i,
+                  quantity: i.quantity + item.quantity,
+                  // Actualizar imagen si el item ahora la tiene y antes no
+                  imageUrl: item.imageUrl ?? i.imageUrl,
+                }
               : i,
           );
         } else {

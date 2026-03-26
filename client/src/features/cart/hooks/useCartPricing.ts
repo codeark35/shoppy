@@ -2,6 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../../../shared/lib/api';
 import type { CartItem } from '../types/cart.types';
 
+export type AppliedPricingItem = {
+  variantId: string;
+  promotionId: string;
+  promotionName: string;
+  discount: number;
+  combinable: boolean;
+};
+
 export type PricingPreview = {
   strategy: string;
   scenario: 'AUTO_ONLY' | 'COUPON_ONLY' | 'AUTO_THEN_COUPON';
@@ -12,6 +20,7 @@ export type PricingPreview = {
   subtotalAfter: number;
   appliedCouponId?: string;
   appliedCouponCode?: string;
+  appliedItems?: AppliedPricingItem[];
 };
 
 export function useCartPricing(items: CartItem[], couponCode?: string) {

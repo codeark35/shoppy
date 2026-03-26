@@ -58,6 +58,29 @@ export function ProductPage() {
     );
   }, [product, selectedAttrs, attrKeys]);
 
+  // Cálculo de precios y descuentos
+  const pricing = useMemo(() => {
+    if (!product) return null;
+    const promo = product.activePromotion;
+    const variantPrice = Number(selectedVariant?.price ?? product.basePrice);
+    const basePrice = Number(product.basePrice);
+    const promoPrice = promo
+      ? promo.discountType === 'PERCENTAGE'
+        ? Math.max(0, variantPrice * (1 - promo.discountValue / 100))
+        : Math.max(0, variantPrice - promo.discountValue)
+      : null;
+    const currentPrice = promoPrice ?? variantPrice;
+    const originalPrice = promoPrice !== null ? variantPrice : basePrice;
+    const discountPct = promo
+      ? promo.discountType === 'PERCENTAGE'
+        ? promo.discountValue
+        : Math.round(((variantPrice - currentPrice) / variantPrice) * 100)
+      : basePrice > 0 && variantPrice < basePrice
+      ? Math.round(((basePrice - variantPrice) / basePrice) * 100)
+      : 0;
+    return { promo, currentPrice, originalPrice, discountPct, hasDiscount: currentPrice < originalPrice };
+  }, [product, selectedVariant]);
+
   if (isLoading) {
     return (
       <>
@@ -174,9 +197,28 @@ export function ProductPage() {
             )}
           </Col>
           <Col md={6} className="mt-3 mt-md-0">
-            <Badge bg="secondary" className="mb-2">{product.category.name}</Badge>
+            <div className="d-flex align-items-center gap-2 flex-wrap mb-2">
+              <Badge bg="secondary">{product.category.name}</Badge>
+              {pricing?.promo && (
+                <span className="product-card__promo-badge" title={pricing.promo.name}>
+                  Oferta{pricing.discountPct > 0 ? ` −${pricing.discountPct}%` : ''}
+                </span>
+              )}
+              {!pricing?.promo && pricing && pricing.discountPct > 0 && (
+                <span className="product-card__discount-badge">−{pricing.discountPct}%</span>
+              )}
+            </div>
             <h1 className="fs-3 fw-bold">{product.name}</h1>
-            <p className="text-primary fs-4 fw-bold">{formatPrice(selectedVariant?.price ?? product.basePrice)}</p>
+            <div className="d-flex align-items-baseline gap-2 mb-2">
+              <span className="text-primary fs-4 fw-bold">
+                {formatPrice(pricing?.currentPrice ?? product.basePrice)}
+              </span>
+              {pricing?.hasDiscount && (
+                <span className="text-muted text-decoration-line-through fs-6">
+                  {formatPrice(pricing.originalPrice)}
+                </span>
+              )}
+            </div>
             <p className="text-muted" style={{ whiteSpace: 'pre-wrap' }}>{product.description}</p>
 
             {product.variants.length > 0 && attrKeys.length > 0 && (
