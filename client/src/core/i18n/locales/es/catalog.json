@@ -1,0 +1,28 @@
+{
+  "title": "Catálogo",
+  "search": {
+    "placeholder": "Buscar productos...",
+    "results_one": "{{count}} producto encontrado",
+    "results_other": "{{count}} productos encontrados",
+    "noResults": "No encontramos productos que coincidan con \"{{query}}\"."
+  },
+  "filters": {
+    "title": "Filtros",
+    "price": "Precio",
+    "category": "Categoría",
+    "anyPrice": "Cualquier precio",
+    "clearAll": "Limpiar filtros"
+  },
+  "product": {
+    "addToCart": "Agregar al carrito",
+    "outOfStock": "Sin stock",
+    "onSale": "En oferta",
+    "featured": "Destacado",
+    "seeDetails": "Ver detalles"
+  },
+  "sections": {
+    "onSale": "Productos en ofertas",
+    "featured": "Productos Destacados",
+    "recent": "Productos Recientes"
+  }
+}

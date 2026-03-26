@@ -433,6 +433,8 @@
   background: #fff;
   border-top: 1px solid #F3F4F6;
   box-shadow: var(--shadow-lg);
+  max-height: 70vh;
+  overflow-y: auto;
 
   &__nav {
     display: flex;
@@ -466,6 +468,40 @@
         font-weight: 600;
       }
     }
+
+    &-link {
+      display: flex;
+      align-items: center;
+      padding: 13px 0;
+      text-decoration: none !important;
+      color: #374151;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border-bottom: 1px solid #F3F4F6;
+      cursor: pointer;
+      transition: color var(--transition-fast), padding-left var(--transition-fast);
+
+      &:hover { color: $color-primary; padding-left: 6px; }
+    }
+  }
+
+  &__section-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9CA3AF;
+    padding: 14px 0 6px;
+    border-bottom: 1px solid #F3F4F6;
+  }
+
+  &__category {
+    font-size: 0.88rem !important;
+    font-weight: 400 !important;
+    padding: 10px 0 10px 8px !important;
+    color: #6B7280 !important;
+
+    &:hover { color: $color-primary !important; padding-left: 14px !important; }
   }
 }
 
@@ -507,6 +543,10 @@
   &__body {
     background: linear-gradient(160deg, #0A2540 0%, #1A5F9E 100%);
     padding: 56px 0 40px;
+
+    @media (max-width: 767.98px) {
+      padding: 36px 0 28px;
+    }
   }
 
   // Grid de 4 columnas
@@ -517,6 +557,16 @@
 
     @media (min-width: 1600px) {
       gap: 60px;
+    }
+
+    @media (max-width: 767.98px) {
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+
+    @media (max-width: 575.98px) {
+      grid-template-columns: 1fr;
+      gap: 24px;
     }
   }
 
@@ -647,6 +697,11 @@
     flex-wrap: wrap;
     font-size: 0.78rem;
     color: rgba(255, 255, 255, 0.65);
+
+    @media (max-width: 575.98px) {
+      justify-content: center;
+      text-align: center;
+    }
   }
 
   // Chips de métodos de pago

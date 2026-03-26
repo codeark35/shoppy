@@ -1,6 +1,97 @@
-# Guía de Arquitectura Frontend — Estándar Empresarial
+# CLAUDE.md
 
-> **Versión:** 2.0 | **Actualizado:** Marzo 2026  
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+---
+
+## Commands
+
+```bash
+npm run dev        # Start dev server (proxies /api to localhost:3070)
+npm run build      # Type-check + production build
+npm run lint       # Run ESLint
+npm run preview    # Preview production build locally
+```
+
+No test runner is configured in this project.
+
+---
+
+## Actual Project Architecture
+
+This is a customer-facing e-commerce storefront + admin dashboard.
+
+**Actual folder layout:**
+```
+src/
+├── app/            # providers.tsx (QueryClient + AuthInit) and router.tsx
+├── assets/         # Static images
+├── core/           # ⚙️ Infraestructura global (añadida en Fase 1 del ROADMAP)
+│   ├── config.ts   # Acceso centralizado a import.meta.env — único punto de entrada
+│   ├── constants/
+│   │   └── routes.ts   # Constantes de rutas (ROUTES.HOME, ROUTES.ADMIN.DASHBOARD, etc.)
+│   └── types/
+│       ├── api.ts       # BaseEntity, PaginatedResult, ApiResponse, ApiError
+│       └── auth.ts      # User, UserRole, Permission (permisos granulares Fase 3)
+├── features/       # Feature modules (ver tabla abajo)
+│   └── [feature]/
+│       ├── components/
+│       ├── hooks/
+│       ├── pages/      # Páginas del feature (movidas de src/pages/ en Fase 2)
+│       ├── services/
+│       ├── store/      # Solo features con estado Zustand (auth, cart)
+│       └── types/
+├── shared/
+│   ├── components/
+│   │   ├── feedback/   # ErrorBoundary, LoadingSpinner, EmptyState (Fase 1)
+│   │   └── ...         # AppNavbar, AppFooter, BottomNav, ProtectedRoute, RichTextEditor, MediaGalleryPicker
+│   ├── hooks/          # useDebounce
+│   ├── lib/            # api.ts (Axios), firebase.ts, queryClient.ts
+│   ├── types/          # Re-exporta desde core/types/api (backward compat)
+│   └── utils/          # formatDate, formatPrice
+├── test/           # Configuración de tests (createQueryWrapper, setup.ts)
+└── styles/         # SCSS modules (_variables, _components, _layout, _admin, _auth, _hero, _skeleton, main.scss)
+```
+
+**Features y sus responsabilidades:**
+
+| Feature | Archivos clave | Notas |
+|---|---|---|
+| `auth` | AuthInit, LoginModal, GoogleSignInButton, useAuth, authStore, auth.service | Firebase + JWT; token en memoria |
+| `catalog` | ProductCard, ProductGrid, useProducts, useProductDetail, useCategories | Navegación pública |
+| `cart` | CartDrawer, MiniCart, cartStore, useCartPricing | Zustand + sync servidor |
+| `checkout` | useCheckout, checkout.service | Protegida |
+| `orders` | OrderList, OrderDetail, OrderTimeline, useOrders | Protegida |
+| `account` | AddressManager, useAccount | Protegida |
+| `wishlist` | useWishlist, wishlist.service | Protegida |
+| `search` | SearchBar, useSearch | |
+| `reviews` | StarRating, ReviewList, ReviewForm, useReviews | |
+| `admin` | AdminLayout, AdminSidebar, useAdmin (10+ hooks), admin.service | Rol: ADMIN o WAREHOUSE |
+| `analytics` | useAnalytics, analytics.service, analytics.tracker | Page view tracking |
+| `banners` | useBanners, HeroBannerSlider, banners.service | |
+
+**Routing (`src/app/router.tsx`):**
+- Públicas: `/`, `/productos`, `/productos/:slug`, `/carrito`, `/buscar`, `/login`, `/registro`
+- Protegidas (auth): `/checkout`, `/checkout/result`, `/pedidos`, `/pedidos/:id`, `/cuenta`, `/favoritos`
+- Admin (rol ADMIN/WAREHOUSE): `/admin/dashboard`, `/admin/productos`, `/admin/ordenes`, `/admin/inventario`, `/admin/usuarios`, `/admin/categorias`, `/admin/banners`, `/admin/analitica`, `/admin/promociones`, `/admin/auditoria`, etc.
+- Todas las páginas admin son lazy-loaded con Suspense
+
+**Estado real de implementación:**
+- **Estado global:** Zustand para auth (`authStore`) y cart (`cartStore`). NO usar Context para estado global.
+- **Estado servidor:** React Query para todos los datos de API.
+- **Estado UI local:** `useState` / `useReducer` en componentes.
+- **Estilos:** SCSS en `src/styles/`. Orden de import: Bootstrap → `main.scss` (que importa partials).
+- **Versiones reales:** React 18.3, React Router 6, Vite 6.
+- **HTTP client:** `src/shared/lib/api.ts` — Axios con interceptor de refresh automático, token en memoria (no localStorage).
+- **Firebase:** Solo para Google Sign-In. Config via `VITE_FIREBASE_*` env vars.
+- **Testing:** Vitest + @testing-library/react. Correr con `npm test`.
+- **Extras:** Tiptap (rich text), Chart.js (analytics admin), Swiper (carouseles), PWA via vite-plugin-pwa.
+
+---
+
+## Guía de Arquitectura Frontend — Estándar Empresarial
+
+> **Versión:** 2.0 | **Actualizado:** Marzo 2026
 > Documento de referencia para todos los proyectos frontend. Aplicar desde el primer commit.
 
 ---
@@ -48,10 +139,10 @@ Estos principios aplican a **todos los proyectos**, independientemente del domin
 
 ```json
 {
-  "react": "^19.x",
+  "react": "^18.x",
   "typescript": "~5.x",
-  "vite": "^7.x",
-  "react-router-dom": "^7.x"
+  "vite": "^6.x",
+  "react-router-dom": "^6.x"
 }
 ```
 
@@ -267,12 +358,17 @@ export default ProductsPage;
 ├── Del servidor / API
 │   └── → React Query (useQuery / useMutation)
 │
-├── Global en toda la app (sesión, tema)
-│   └── → React Context
+├── Global en toda la app (auth, carrito, UI global)
+│   └── → Zustand (store en features/[nombre]/store/)
+│       Regla: un archivo de store por feature, no un store global monolítico.
 │
 └── Solo en esta pantalla o componente
     └── → useState / useReducer
 ```
+
+> **Nota:** Este proyecto usa **Zustand** como estándar para estado global del cliente.
+> React Context solo se usa cuando una librería externa lo impone (ej. QueryClientProvider).
+> NO crear nuevos contextos de React para estado de negocio.
 
 ### React Query — Configuración base
 

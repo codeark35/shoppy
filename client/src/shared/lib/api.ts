@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { useAuthStore } from '../../features/auth/store/authStore';
+import { config } from '../../core/config';
+
+const API_BASE = `${config.apiBaseUrl}/${config.apiVersion}`;
 
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: API_BASE,
   withCredentials: true,         // enviar cookies HttpOnly (refresh_token)
   headers: { 'Content-Type': 'application/json' },
 });
@@ -53,7 +56,7 @@ api.interceptors.response.use(
 
       try {
         const { data } = await axios.post(
-          '/api/v1/auth/refresh',
+          `${API_BASE}/auth/refresh`,
           {},
           { withCredentials: true },
         );

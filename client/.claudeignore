@@ -1,0 +1,8 @@
+.claudeignore`
+Igual que `.gitignore`, excluye carpetas que Claude no necesita leer:
+```
+node_modules/
+dist/
+.git/
+*.log
+coverage/

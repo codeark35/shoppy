@@ -165,8 +165,30 @@ export function AppNavbar() {
               <nav className="mobile-menu__nav">
                 <NavLink to="/" end onClick={() => setMenuOpen(false)}>Inicio</NavLink>
                 <NavLink to="/productos" onClick={() => setMenuOpen(false)}>Catálogo</NavLink>
+                <Link to="/productos?onSale=true" className="mobile-menu__nav-link" onClick={() => setMenuOpen(false)}>
+                  <Tag size={14} className="me-2" />Ofertas
+                </Link>
+                <Link to="/productos?featured=true" className="mobile-menu__nav-link" onClick={() => setMenuOpen(false)}>
+                  <Star size={14} className="me-2" />Destacados
+                </Link>
+                {rootCategories.length > 0 && (
+                  <>
+                    <div className="mobile-menu__section-title">Categorías</div>
+                    {rootCategories.map((cat) => (
+                      <Link
+                        key={cat.id}
+                        to={`/productos?categoria=${cat.slug}`}
+                        className="mobile-menu__nav-link mobile-menu__category"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        {cat.name}
+                      </Link>
+                    ))}
+                  </>
+                )}
                 {isAuthenticated ? (
                   <>
+                    <div className="mobile-menu__section-title">Mi cuenta</div>
                     <NavLink to="/pedidos" onClick={() => setMenuOpen(false)}>Mis pedidos</NavLink>
                     <NavLink to="/cuenta" onClick={() => setMenuOpen(false)}>Mi cuenta</NavLink>
                     {user?.role === 'ADMIN' && (

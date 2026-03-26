@@ -1,0 +1,23 @@
+{
+  "title": "Mis pedidos",
+  "detail": "Detalle del pedido",
+  "orderNumber": "Pedido #{{number}}",
+  "status": {
+    "PENDING": "Pendiente",
+    "CONFIRMED": "Confirmado",
+    "PROCESSING": "En proceso",
+    "SHIPPED": "Enviado",
+    "DELIVERED": "Entregado",
+    "CANCELLED": "Cancelado"
+  },
+  "empty": {
+    "title": "No tenés pedidos todavía",
+    "description": "Cuando realices una compra, aparecerá aquí."
+  },
+  "timeline": {
+    "placed": "Pedido realizado",
+    "confirmed": "Confirmado",
+    "shipped": "Enviado",
+    "delivered": "Entregado"
+  }
+}

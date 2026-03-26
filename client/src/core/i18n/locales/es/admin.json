@@ -1,0 +1,32 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "orders": "Órdenes",
+    "inventory": "Inventario",
+    "products": "Productos",
+    "categories": "Categorías",
+    "banners": "Banners",
+    "analytics": "Analítica",
+    "promotions": "Promociones",
+    "users": "Usuarios",
+    "audit": "Auditoría"
+  },
+  "products": {
+    "title": "Productos",
+    "new": "Nuevo Producto",
+    "edit": "Editar Producto",
+    "delete": "Eliminar producto",
+    "deleteConfirm": "¿Estás seguro de eliminar \"{{name}}\"? Esta acción no se puede deshacer."
+  },
+  "orders": {
+    "title": "Órdenes",
+    "updateStatus": "Actualizar estado",
+    "trackingNumber": "Número de seguimiento"
+  },
+  "inventory": {
+    "title": "Inventario",
+    "lowStock": "Stock bajo",
+    "updateStock": "Actualizar stock",
+    "newQuantity": "Nueva cantidad"
+  }
+}

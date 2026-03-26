@@ -1,0 +1,39 @@
+{
+  "actions": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "confirm": "Confirmar",
+    "back": "Volver",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "retry": "Reintentar",
+    "loading": "Cargando...",
+    "seeAll": "Ver todos"
+  },
+  "status": {
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "pending": "Pendiente",
+    "cancelled": "Cancelado",
+    "draft": "Borrador"
+  },
+  "errors": {
+    "unexpected": "Ocurrió un error inesperado.",
+    "notFound": "No se encontró el recurso solicitado.",
+    "unauthorized": "No tenés permiso para realizar esta acción.",
+    "networkError": "Error de conexión. Verificá tu internet."
+  },
+  "empty": {
+    "noResults": "Sin resultados",
+    "noData": "No hay datos para mostrar"
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page": "Página {{current}} de {{total}}"
+  }
+}

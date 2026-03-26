@@ -6,7 +6,7 @@ const YEAR = new Date().getFullYear();
 
 export function AppFooter() {
   return (
-    <footer className="app-footer d-none d-md-block">
+    <footer className="app-footer">
       {/* ── Cuerpo principal ──────────────────────────────────────── */}
       <div className="app-footer__body">
         <Container fluid="xl">
