@@ -34,6 +34,7 @@ import { APP_FILTER } from '@nestjs/core';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      expandVariables: true,
     }),
 
     // ─── Eventos (comunicación entre módulos sin acoplamiento) ────────────────

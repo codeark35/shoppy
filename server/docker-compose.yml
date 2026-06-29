@@ -2,7 +2,7 @@ name: ecommerce
 services:
   # Base de datos PostgreSQL
   postgres:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     container_name: ecommerce_db
     restart: unless-stopped
     env_file:
@@ -47,5 +47,4 @@ volumes:
 
 networks:
   ecommerce_network:
-    name: ecommerce_network
     driver: bridge
