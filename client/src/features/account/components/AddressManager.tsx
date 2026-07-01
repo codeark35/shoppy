@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, Button, ListGroup, Badge, Modal, Form, Col, Row, Spinner, Alert } from 'react-bootstrap';
 import { Plus, Trash2, MapPin, Pencil, Star } from 'lucide-react';
+import { DEPARTMENTS, getCitiesByDepartment } from '../../../shared/data/paraguay';
 import type { Address, CreateAddressDto, UpdateAddressDto } from '../types/account.types';
 import { useAddresses, useCreateAddress, useDeleteAddress, useUpdateAddress, useSetDefaultAddress } from '../hooks/useAccount';
 
@@ -21,13 +22,24 @@ export function AddressManager() {
   const [editTarget, setEditTarget] = useState<Address | null>(null);
   const [editForm, setEditForm] = useState<UpdateAddressDto>({});
 
-  const handleCreateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setCreateForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  const createCities = useMemo(() => getCitiesByDepartment(createForm.department), [createForm.department]);
+  const editCities = useMemo(() => getCitiesByDepartment(editForm.department ?? ''), [editForm.department]);
+
+  const handleCreateChange = (e: React.ChangeEvent<any>) => {
+    const val = e.target instanceof HTMLInputElement && e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    setCreateForm((prev) => ({ ...prev, [e.target.name]: val }));
   };
 
-  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCreateDeptChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCreateForm((prev) => ({ ...prev, department: e.target.value, city: '' }));
+  };
+
+  const handleEditChange = (e: React.ChangeEvent<any>) => {
     setEditForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleEditDeptChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setEditForm((prev) => ({ ...prev, department: e.target.value, city: '' }));
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -149,14 +161,26 @@ export function AddressManager() {
               </Col>
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label>Ciudad</Form.Label>
-                  <Form.Control name="city" value={createForm.city} onChange={handleCreateChange} required placeholder="Asunción" />
+                  <Form.Label>Departamento</Form.Label>
+                  <Form.Select name="department" value={createForm.department} onChange={handleCreateDeptChange} required>
+                    <option value="">Seleccioná un departamento</option>
+                    {DEPARTMENTS.map((d) => (
+                      <option key={d.name} value={d.name}>{d.name}</option>
+                    ))}
+                  </Form.Select>
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label>Departamento</Form.Label>
-                  <Form.Control name="department" value={createForm.department} onChange={handleCreateChange} required placeholder="Central" />
+                  <Form.Label>Ciudad</Form.Label>
+                  <Form.Select name="city" value={createForm.city} onChange={handleCreateChange} required disabled={!createForm.department}>
+                    <option value="">
+                      {createForm.department ? 'Seleccioná una ciudad' : 'Primero seleccioná un departamento'}
+                    </option>
+                    {createCities.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </Form.Select>
                 </Form.Group>
               </Col>
               <Col md={6}>
@@ -209,14 +233,26 @@ export function AddressManager() {
               </Col>
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label>Ciudad</Form.Label>
-                  <Form.Control name="city" value={editForm.city ?? ''} onChange={handleEditChange} required />
+                  <Form.Label>Departamento</Form.Label>
+                  <Form.Select name="department" value={editForm.department ?? ''} onChange={handleEditDeptChange} required>
+                    <option value="">Seleccioná un departamento</option>
+                    {DEPARTMENTS.map((d) => (
+                      <option key={d.name} value={d.name}>{d.name}</option>
+                    ))}
+                  </Form.Select>
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label>Departamento</Form.Label>
-                  <Form.Control name="department" value={editForm.department ?? ''} onChange={handleEditChange} required />
+                  <Form.Label>Ciudad</Form.Label>
+                  <Form.Select name="city" value={editForm.city ?? ''} onChange={handleEditChange} required disabled={!editForm.department}>
+                    <option value="">
+                      {editForm.department ? 'Seleccioná una ciudad' : 'Primero seleccioná un departamento'}
+                    </option>
+                    {editCities.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </Form.Select>
                 </Form.Group>
               </Col>
               <Col md={6}>

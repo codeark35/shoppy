@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Truck, Zap, MapPin, MessageCircle } from 'lucide-react';
@@ -11,6 +11,7 @@ import { useCartPricing } from '../../cart/hooks/useCartPricing';
 import { formatPrice } from '../../../shared/utils/formatPrice';
 import api from '../../../shared/lib/api';
 import { analyticsTracker } from '../../analytics/services/analytics.tracker';
+import { DEPARTMENTS, getCitiesByDepartment } from '../../../shared/data/paraguay';
 import type { CreateOrderDto } from '../types/checkout.types';
 import type { Address } from '../../account/types/account.types';
 import { useProfile, useAddresses } from '../../account/hooks/useAccount';
@@ -183,8 +184,18 @@ export function CheckoutPage() {
     window.open(`https://wa.me/${number}?text=${buildWhatsAppMessage()}`, '_blank');
   };
 
+  const cities = useMemo(() => getCitiesByDepartment(form.department), [form.department]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleDepartmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setForm((prev) => ({ ...prev, department: e.target.value, city: '' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -277,26 +288,38 @@ export function CheckoutPage() {
                     </Col>
                     <Col md={6}>
                       <Form.Group>
-                        <Form.Label>Ciudad</Form.Label>
-                        <Form.Control
-                          name="city"
-                          value={form.city}
-                          onChange={handleChange}
+                        <Form.Label>Departamento</Form.Label>
+                        <Form.Select
+                          name="department"
+                          value={form.department}
+                          onChange={handleDepartmentChange}
                           required
-                          placeholder="Asunción"
-                        />
+                        >
+                          <option value="">Seleccioná un departamento</option>
+                          {DEPARTMENTS.map((d) => (
+                            <option key={d.name} value={d.name}>{d.name}</option>
+                          ))}
+                        </Form.Select>
+                        <Form.Text className="text-muted small">{DEPARTMENTS.find(d => d.name === form.department) ? '' : 'Seleccioná un departamento'}</Form.Text>
                       </Form.Group>
                     </Col>
                     <Col md={6}>
                       <Form.Group>
-                        <Form.Label>Departamento</Form.Label>
-                        <Form.Control
-                          name="department"
-                          value={form.department}
-                          onChange={handleChange}
+                        <Form.Label>Ciudad</Form.Label>
+                        <Form.Select
+                          name="city"
+                          value={form.city}
+                          onChange={handleSelectChange}
                           required
-                          placeholder="Central"
-                        />
+                          disabled={!form.department}
+                        >
+                          <option value="">
+                            {form.department ? 'Seleccioná una ciudad' : 'Primero seleccioná un departamento'}
+                          </option>
+                          {cities.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </Form.Select>
                       </Form.Group>
                     </Col>
                     <Col xs={12}>
